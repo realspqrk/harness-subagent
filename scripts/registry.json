@@ -23,8 +23,29 @@
           "efforts": ["low", "medium", "high", "xhigh", "max"]
         },
         {
+          "id": "claude-opus-5",
+          "say": ["opus 5", "claude opus 5"],
+          "input_usd_per_mtok": 5,
+          "output_usd_per_mtok": 25,
+          "efforts": ["low", "medium", "high", "xhigh", "max"]
+        },
+        {
+          "id": "claude-fable-5",
+          "say": ["fable 5", "claude fable 5"],
+          "input_usd_per_mtok": 10,
+          "output_usd_per_mtok": 50,
+          "efforts": ["low", "medium", "high", "xhigh", "max"]
+        },
+        {
+          "id": "claude-sonnet-5-5",
+          "say": ["sonnet 5.5", "claude sonnet 5.5", "sonnet"],
+          "input_usd_per_mtok": 2,
+          "output_usd_per_mtok": 10,
+          "efforts": ["low", "medium", "high", "xhigh", "max"]
+        },
+        {
           "id": "claude-sonnet-5",
-          "say": ["sonnet 5", "sonnet"],
+          "say": ["sonnet 5", "claude sonnet 5"],
           "input_usd_per_mtok": 2,
           "output_usd_per_mtok": 10,
           "efforts": ["low", "medium", "high", "xhigh", "max"]
@@ -144,7 +165,7 @@
       "version": [],
       "auth": [],
       "update": ["update"],
-      "efforts": ["low", "medium", "high"],
+      "efforts": ["low", "medium", "high", "max"],
       "models": []
     },
     "cursor": {

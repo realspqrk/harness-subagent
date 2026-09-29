@@ -5,14 +5,15 @@ description: >
   delegates to a subagent. CLIs are Claude Code, Codex, Grok Build, Antigravity
   (agy), and the Cursor CLI (cursor-agent). Use when the user says
   harness-subagent, or names a CLI or a model such as Astra, Sol, Opus, Opus 5.5,
-  Fable, Sonnet, Haiku, or Grok 4.7. Do not use to install those CLIs. Do not use
-  if this session was launched by this skill (the prompt starts with YOU ARE THE
-  WORKER, or HARNESS_SUBAGENT_RUN is set). Do that job. Do not delegate again.
+  Fable, Sonnet, Sonnet 5.5, Haiku, or Grok 4.7. Do not use to install those
+  CLIs. Do not use if this session was launched by this skill (the prompt starts
+  with YOU ARE THE WORKER, or HARNESS_SUBAGENT_RUN is set). Do that job. Do not
+  delegate again.
 license: MIT
 compatibility: Requires claude, codex, grok, agy, and/or cursor-agent on PATH. Windows needs Git Bash. Python 3.
 metadata:
   author: ptmrio
-  version: "0.4.0"
+  version: "0.4.1"
 ---
 
 # Harness subagent

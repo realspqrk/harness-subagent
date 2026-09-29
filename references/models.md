@@ -1,6 +1,6 @@
 # Models
 
-Spoken names resolve to these ids. Prices are USD per million tokens, standard rate, short context, as published on 2026-09-22. A higher effort does not change the per-token rate. It spends more tokens, and those tokens are billed at the output rate.
+Spoken names resolve to these ids. Prices are USD per million tokens, standard rate, short context, as published on 2026-09-22, plus Sonnet 5.5 on 2026-09-29. A higher effort does not change the per-token rate. It spends more tokens, and those tokens are billed at the output rate.
 
 Pass `--effort` yourself. If you omit it, the CLI uses its own default.
 
@@ -10,32 +10,46 @@ Pass `--effort` yourself. If you omit it, the CLI uses its own default.
 |---|---|---:|---:|---|
 | Opus 5.5, Opus | `claude-opus-5-5` | 4 | 20 | low, medium, high, xhigh, max |
 | Fable 5.1, Fable | `claude-fable-5-1` | 10 | 50 | low, medium, high, xhigh, max |
-| Sonnet 5, Sonnet | `claude-sonnet-5` | 2 | 10 | low, medium, high, xhigh, max |
+| Opus 5 | `claude-opus-5` | 5 | 25 | low, medium, high, xhigh, max |
+| Fable 5 | `claude-fable-5` | 10 | 50 | low, medium, high, xhigh, max |
+| Sonnet 5.5, Sonnet | `claude-sonnet-5-5` | 2 | 10 | low, medium, high, xhigh, max |
+| Sonnet 5 | `claude-sonnet-5` | 2 | 10 | low, medium, high, xhigh, max |
 | Haiku 4.5, Haiku | `claude-haiku-4-5-20251001` | 1 | 5 | none |
 
-Opus 5.5 shipped 2026-09-22. The short alias `opus` in Claude Code 2.1.280 points at it on the Anthropic API. This skill passes the full id.
+Opus 5.5 shipped 2026-09-22. Sonnet 5.5 shipped 2026-09-28 and needs Claude Code 2.1.284 or later. On the Anthropic API the short aliases `opus` and `sonnet` point at Opus 5.5 and Sonnet 5.5. This skill passes the full id. Saying Sonnet selects Sonnet 5.5. Opus 5, Fable 5, and Sonnet 5 are still served and stay under their versioned names.
 
-Vendor descriptions, from the Claude Code model docs (accessed 2026-09-22).
+Sonnet 5.5 recalibrates its effort levels relative to Sonnet 5, so an effort that suited Sonnet 5 is not the same spend on Sonnet 5.5. Claude Code defaults Opus 5.5 and Sonnet 5.5 to `medium`. The Claude Platform API defaults Sonnet 5.5 to `high`.
+
+Vendor descriptions, from the Claude Code model docs (accessed 2026-09-29).
 
 | Effort | What Anthropic says |
 |---|---|
-| low | Short, scoped, latency-sensitive tasks that are not intelligence-sensitive. |
-| medium | Less token use. The default on Opus 5.5. |
-| high | Balance of tokens and intelligence. The default on Fable 5.1 and Sonnet 5. |
+| low | Quick exchanges you review each result of, such as brainstorming, a first sketch, or a rename. |
+| medium | The default on Opus 5.5 and Sonnet 5.5. Day-to-day work with a clear scope, such as implementing a feature. On other models it trades some intelligence for fewer tokens. |
+| high | Work where verification matters or edge cases are likely, such as fixing a bug in an existing codebase. The default on Fable 5.1, Fable 5, Opus 5, and Sonnet 5. |
 | xhigh | Deeper reasoning, higher token spend. |
-| max | May help on hard tasks, with diminishing returns and overthinking. |
+| max | Hard problems you want worked through without you. May show diminishing returns and overthinking. |
 
-Published scores that name an effort, from the Opus 5.5 announcement (2026-09-22).
+Published scores that name an effort.
 
-| Benchmark | Opus 5.5 | Effort on that score |
-|---|---:|---|
-| FrontierCode v1.1 | 54.6% | medium |
-| CursorBench 4.0 | 52.5% | medium |
-| FrontierCode v1.1 | 54.4% | max |
-| CursorBench 4.0 | 57.8% | max |
-| Terminal-Bench 4.0 | 66.4% | xhigh |
+| Model | Benchmark | Score | Effort on that score |
+|---|---|---:|---|
+| Opus 5.5 | FrontierCode v1.1 | 54.6% | medium |
+| Opus 5.5 | CursorBench 4.0 | 52.5% | medium |
+| Opus 5.5 | FrontierCode v1.1 | 54.4% | max |
+| Opus 5.5 | CursorBench 4.0 | 57.8% | max |
+| Opus 5.5 | Terminal-Bench 4.0 | 66.4% | xhigh |
+| Sonnet 5.5 | Terminal-Bench 4.0 | 70.6% | max |
+| Sonnet 5.5 | Terminal-Bench 4.0 | 28.8% | medium |
+| Sonnet 5.5 | FrontierCode v1.1 | 52.1% | xhigh |
+| Sonnet 5.5 | FrontierCode v1.1 | 49.4% | high |
+| Sonnet 5.5 | FrontierCode v1.1 | 46.2% | max |
+| Sonnet 5.5 | CursorBench 4.0 | 55.5% | max |
+| Sonnet 5.5 | CursorBench 4.0 | 39.2% | medium |
 
-Sources: https://platform.claude.com/docs/en/about-claude/pricing and https://www.anthropic.com/news/claude-opus-5-5
+Sonnet 5.5 scores lower on FrontierCode at max than at xhigh. Anthropic's footnote says that at max it more often ran a multi-subagent code review, which led to timeouts or edits beyond the task. The medium and high Sonnet 5.5 rows come from the per-effort cost charts on the announcement page, not its headline table.
+
+Sources: https://platform.claude.com/docs/en/about-claude/pricing, https://code.claude.com/docs/en/model-config, https://www.anthropic.com/news/claude-opus-5-5, and https://www.anthropic.com/claude-sonnet-5-5 (accessed 2026-09-29)
 
 ## Codex (`codex`)
 
@@ -95,6 +109,8 @@ Source: https://x.ai/news/grok-4-7 (2026-09-21) and https://docs.x.ai/developers
 
 ## Antigravity (`agy`) and Cursor CLI (`cursor`)
 
-No fixed model list lives here. Pass the id the CLI accepts. `agy` efforts are `low`, `medium`, and `high`. Cursor has no separate effort flag. When you pass `--effort`, the spawn command writes it into the model id as `[effort=...]`, which `cursor-agent --help` documents.
+No fixed model list lives here. Pass the id the CLI accepts.
+
+`agy models` lists ids with the effort built in, such as `gemini-3.8-flash-high`. Such an id takes no `--effort`. agy 1.2.13 rejects the pair as a conflict. To choose the effort with `--effort`, pass the base id, such as `gemini-3.8-flash`. The CLI help lists `low`, `medium`, `high`, and `max`, but each model takes only some of them. On 2026-09-29 `gemini-3.8-flash` took `low`, `medium`, and `high`, and `gemini-3.1-pro` took `low` and `high`. agy names the allowed set when you pass another one. Cursor has no separate effort flag. When you pass `--effort`, the spawn command writes it into the model id as `[effort=...]`, which `cursor-agent --help` documents.
 
 List Cursor models with `cursor-agent --list-models`. The binary is `cursor-agent`. On this platform `agent` is often Grok, not Cursor.

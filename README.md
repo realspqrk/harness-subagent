@@ -68,7 +68,7 @@ The exit code is 0 only when every CLI is present, every CLI with a login check 
 
 The protocol is [SKILL.md](SKILL.md). This is the short version.
 
-1. **You name the CLI and the model.** Spoken names such as Opus 5.5, Fable, Sonnet, Astra, Sol, Terra, Luna, and Grok 4.7 resolve to exact ids in [references/models.md](references/models.md), which also lists prices and effort levels. For Antigravity and Cursor, pass the id that CLI accepts. If you name neither CLI nor model, the parent asks once.
+1. **You name the CLI and the model.** Spoken names such as Opus 5.5, Fable, Sonnet 5.5, Astra, Sol, Terra, Luna, and Grok 4.7 resolve to exact ids in [references/models.md](references/models.md), which also lists prices and effort levels. For Antigravity and Cursor, pass the id that CLI accepts. If you name neither CLI nor model, the parent asks once.
 2. **The parent writes a brief.** It creates `brief.md` in a new temp run directory: one task sentence, where to look, what was already tried, and when it is done. It names paths. It does not paste the repo.
 3. **The parent runs `scripts/spawn.sh` in the background** and waits for it to exit.
 4. **The parent judges the report.** It reads `report.md` (or `last.md`) and `capture-status.txt`, then says what it agrees with, what it does not, and what it will do. A pasted report is not an answer.

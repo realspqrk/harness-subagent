@@ -12,6 +12,7 @@ Usage: spawn.sh [--backend claude|codex|grok|agy|cursor] --model NAME \
 
 --model accepts a spoken name from references/models.md or a CLI model id.
 --backend is optional when that name belongs to one CLI.
+--image attaches a file for codex only; other CLIs refuse it.
 Requires a non-empty $RUN/brief.md written by the parent.
 Writes $RUN/stdout.md, prefers $RUN/report.md when it contains VERDICT,
 normalizes into $RUN/last.md, and records $RUN/capture-status.txt
@@ -35,7 +36,6 @@ ok_token() {
 }
 
 BACKEND=""
-MODE=""
 PROJECT=""
 RUN=""
 MODEL=""
@@ -48,7 +48,6 @@ IMAGES=()
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --backend) need_val "$1" "${2-}"; BACKEND="$2"; shift 2 ;;
-    --mode) die "--mode was removed; the brief says what the child may change" ;;
     --project) need_val "$1" "${2-}"; PROJECT="$2"; shift 2 ;;
     --run) need_val "$1" "${2-}"; RUN="$2"; shift 2 ;;
     --model) need_val "$1" "${2-}"; MODEL="$2"; shift 2 ;;
@@ -100,8 +99,7 @@ PROVIDER_ERRORS="$RUN/provider-errors.log"
 DIAG="$RUN/capture-errors.log"
 CMD=()
 
-# Python 3 is the checked JSON consumer; no jq dependency. Keep it inline so
-# identity validation and event decoding share one schema on Git Bash/Windows.
+# Python 3 is the checked JSON consumer (session_capture.py); no jq dependency.
 PYTHON=""
 for candidate in python python3; do
   if command -v "$candidate" >/dev/null && "$candidate" -c 'import sys; assert sys.version_info.major == 3' 2>/dev/null; then
@@ -140,188 +138,26 @@ case "$BACKEND" in
   claude|codex|grok|agy|cursor) ;;
   *) die "unknown backend: $BACKEND" ;;
 esac
+if ((${#IMAGES[@]})) && [[ "$BACKEND" != codex ]]; then
+  die "--image is only supported for codex; name the image path in brief.md instead"
+fi
 
 new_uuid() {
   local id
-  if command -v uuidgen >/dev/null; then
-    id="$(uuidgen)" || return
-  elif command -v python >/dev/null && python -c 'import uuid' 2>/dev/null; then
-    id="$(python -c 'import uuid; print(uuid.uuid4())')" || return
-  elif command -v python3 >/dev/null && python3 -c 'import uuid' 2>/dev/null; then
-    id="$(python3 -c 'import uuid; print(uuid.uuid4())')" || return
-  elif command -v powershell.exe >/dev/null; then
-    id="$(powershell.exe -NoProfile -NonInteractive -Command '[guid]::NewGuid().ToString()')" || return
-  else
-    echo 'spawn.sh: no UUID source (uuidgen, Python, or PowerShell)' >&2
-    return 2
-  fi
+  id="$("$PYTHON" -c 'import uuid; print(uuid.uuid4())')" || return
   id="${id//$'\r'/}"
-  id="${id,,}"
   [[ "$id" =~ ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$ ]] || {
     echo 'spawn.sh: UUID source returned invalid identity' >&2; return 2;
   }
   printf '%s\n' "$id"
 }
 
-SESSION_PY="$(mktemp "${TMPDIR:-/tmp}/hs-sess.XXXXXX.py")"
+SESSION_PY="$SCRIPT_DIR/session_capture.py"
 GROK_PROMPT_COPY=""
-cleanup() { rm -f "$SESSION_PY" ${GROK_PROMPT_COPY:+"$GROK_PROMPT_COPY"}; }
+cleanup() { rm -f ${GROK_PROMPT_COPY:+"$GROK_PROMPT_COPY"}; }
 trap cleanup EXIT
-cat >"$SESSION_PY" <<'PY'
-import json, pathlib, re, sys
-action, run, project, backend, model, effort, mode, sid, skip, resume = sys.argv[1:]
-run = pathlib.Path(run).resolve()
-key = {'claude': 'session_id', 'grok': 'session_id', 'codex': 'thread_id', 'agy': 'conversation_id', 'cursor': 'session_id'}[backend]
-uuid = re.compile(r'[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}')
-
-def load_identity():
-    return json.loads((run / 'session.json').read_text(encoding='utf-8'))
-
-def validate_resume():
-    if not uuid.fullmatch(resume):
-        raise ValueError('resume ID must be a full lowercase canonical UUID, with no extra text')
-    if (run / 'session-id').read_bytes() != (resume + '\n').encode():
-        raise ValueError('session-id must contain exactly the requested UUID plus one newline')
-    d = load_identity()
-    expected = dict(backend=backend, native_key=key, id=resume, model=model, effort=effort, mode=mode)
-    expected[key] = resume
-    for field, value in expected.items():
-        if d.get(field) != value:
-            raise ValueError('identity mismatch: ' + field)
-    if d.get('persistence_available') is not True or (backend == 'claude' and skip):
-        raise ValueError('persistence unavailable: ' + (d.get('unavailable_reason') or 'CLAUDE_CODE_SKIP_PROMPT_HISTORY is set'))
-    if type(d.get('preassigned')) is not bool:
-        raise ValueError('identity missing preassigned flag')
-    for field in ('cwd', 'origin_run', 'attempt_run'):
-        if not isinstance(d.get(field), str) or not pathlib.Path(d[field]).is_absolute():
-            raise ValueError('identity missing resolved path: ' + field)
-    if pathlib.Path(d['cwd']).resolve() != pathlib.Path(project).resolve():
-        raise ValueError('identity mismatch: resolved cwd')
-    if run in (pathlib.Path(d['attempt_run']).resolve(), pathlib.Path(d['origin_run']).resolve()):
-        raise ValueError('resume requires a separate attempt directory; preserve prior artifacts')
-    return d
-
-def write_metadata(d):
-    (run / 'session.json').write_text(json.dumps(d, indent=2) + '\n', encoding='utf-8')
-
-def persist(identity, preassigned):
-    if identity and not uuid.fullmatch(identity):
-        raise ValueError('provider identity is not a canonical lowercase UUID')
-    unavailable = 'CLAUDE_CODE_SKIP_PROMPT_HISTORY is set' if backend == 'claude' and skip else ''
-    d = dict(backend=backend, native_key=key, id=identity, cwd=str(pathlib.Path(project).resolve()),
-             origin_run=str(run), attempt_run=str(run), preassigned=preassigned,
-             model=model, effort=effort, mode=mode,
-             persistence_available=bool(identity) and not unavailable,
-             unavailable_reason=unavailable or ('' if identity else 'provider ID unavailable'))
-    d[key] = identity
-    if resume:
-        if identity != resume:
-            raise ValueError('observed ' + key + ' does not match requested resume ID')
-        d['origin_run'] = load_identity()['origin_run']
-    if identity:
-        (run / 'session-id').write_bytes((identity + '\n').encode())
-    write_metadata(d)
-
-try:
-    if action == 'validate':
-        validate_resume()
-    elif action == 'attempt':
-        d = validate_resume()
-        d['attempt_run'] = str(run)
-        write_metadata(d)
-    elif action == 'preassign':
-        persist(sid, True)
-    elif action == 'events':
-        observed = None
-        deltas = []
-        response = None
-        single_turn = False
-        parse_error = None
-        # Labeled decoded-error source, never a grep of tool payloads.
-        # Consume JSONL from the live CLI pipe so identity is persisted as soon
-        # as thread.started/init arrives; drain remaining stdin after a parse
-        # error so the CLI is not SIGPIPEd and events.jsonl stays complete.
-        # Read stdin as bytes: locale text mode (cp1252) mojibakes UTF-8 and
-        # collapses CRLF. Decode UTF-8 per record for parse only.
-        with (run / 'provider-errors.log').open('w', encoding='utf-8', newline='\n') as errors:
-            with (run / 'events.jsonl').open('wb') as events_out:
-                for raw in sys.stdin.buffer:
-                    events_out.write(raw)
-                    events_out.flush()
-                    if not raw.strip():
-                        continue
-                    try:
-                        line = raw.decode('utf-8')
-                    except UnicodeDecodeError as exc:
-                        if parse_error is None:
-                            parse_error = exc
-                        continue
-                    try:
-                        event = json.loads(line)
-                        if not isinstance(event, dict):
-                            raise ValueError('event must be a JSON object')
-                    except Exception as exc:
-                        if parse_error is None:
-                            parse_error = exc
-                        continue
-                    try:
-                        kind = event.get('type') or event.get('event')
-                        # A later identity must not prove resume after a parse/identity failure.
-                        if parse_error is None:
-                            if (backend == 'codex' and kind == 'thread.started') or (backend == 'agy' and kind == 'init'):
-                                identity = event.get(key)
-                                if resume and identity != resume:
-                                    raise ValueError('observed ' + key + ' missing or different from requested resume ID')
-                                if identity:
-                                    if observed and identity != observed:
-                                        raise ValueError('provider emitted conflicting identities')
-                                    observed = identity
-                                    persist(observed, False)  # Before processing any final response.
-                        # Only provider result events carry the final assistant answer.
-                        result = event.get('result') if kind == 'result' else None
-                        result = result if isinstance(result, dict) else (event if kind == 'result' else {})
-                        if backend == 'agy':
-                            if result.get('num_turns') == 1 or event.get('num_turns') == 1:
-                                single_turn = True
-                            if isinstance(result.get('response'), str):
-                                response = result['response']
-                            if kind == 'text_delta':
-                                delta = event.get('text', event.get('delta', ''))
-                                if isinstance(delta, str):
-                                    deltas.append(delta)
-                            elif kind == 'content_block_delta' and isinstance(event.get('delta'), dict):
-                                delta = event['delta']
-                                if delta.get('type') == 'text_delta' and isinstance(delta.get('text'), str):
-                                    deltas.append(delta['text'])
-                        error = None
-                        if kind in ('error', 'thread.failed', 'turn.failed'):
-                            error = event.get('error', event.get('message'))
-                        elif kind == 'result' and (result.get('error') or result.get('is_error')):
-                            error = result.get('error', result.get('response'))
-                        if error is not None:
-                            errors.write((error if isinstance(error, str) else json.dumps(error, ensure_ascii=False)) + '\n')
-                            errors.flush()
-                    except Exception as exc:
-                        if parse_error is None:
-                            parse_error = exc
-        if backend == 'agy':
-            (run / 'stdout.md').write_bytes((response if response is not None else ''.join(deltas)).encode('utf-8'))
-        if parse_error is not None:
-            raise parse_error
-        if resume and observed != resume:
-            raise ValueError('resume did not emit matching ' + key)
-        if resume and backend == 'agy' and single_turn:
-            raise ValueError('agy resume reported num_turns == 1; possible fresh conversation')
-        if not observed and not resume:
-            persist(None, False)
-    else:
-        raise ValueError('unknown session action')
-except Exception as exc:
-    print('session capture: ' + str(exc), file=sys.stderr)
-    sys.exit(2)
-PY
 session_data() {
-  "$PYTHON" -u "$SESSION_PY" "$1" "$RUN" "$PROJECT" "$BACKEND" "$MODEL" "$EFFORT" "$MODE" "${SID-}" "${CLAUDE_CODE_SKIP_PROMPT_HISTORY+x}" "$RESUME_ID"
+  "$PYTHON" -u "$SESSION_PY" "$1" "$RUN" "$PROJECT" "$BACKEND" "$MODEL" "$EFFORT" "${SID-}" "${CLAUDE_CODE_SKIP_PROMPT_HISTORY+x}" "$RESUME_ID"
 }
 
 SID=""
@@ -351,7 +187,7 @@ if [[ "$BACKEND" == grok && "$DRY" -eq 0 ]]; then
 fi
 
 CURSOR_MODEL="$MODEL"
-if [[ "$BACKEND" == cursor && -n "$EFFORT" && "$CURSOR_MODEL" != *'['* ]]; then
+if [[ "$BACKEND" == cursor && -n "$EFFORT" ]]; then
   CURSOR_MODEL="${MODEL}[effort=${EFFORT}]"
 fi
 
@@ -403,11 +239,10 @@ case "$BACKEND" in
     ;;
 esac
 
-# True if file has a VERDICT line (plain, bold, or VERDICT:).
+# A VERDICT line: plain, bold, or VERDICT:.
+VERDICT_RE='^\*{0,2}VERDICT([: —–-]|$)'
 has_verdict() {
-  local f="$1"
-  [[ -s "$f" ]] || return 1
-  grep -qE '^\*{0,2}VERDICT([: —–-]|$)' "$f"
+  [[ -s "$1" ]] && grep -qE "$VERDICT_RE" "$1"
 }
 
 # Drop preamble so last.md starts at VERDICT when present. Accept **VERDICT / VERDICT:.
@@ -423,9 +258,9 @@ normalize_verdict() {
   case "$first" in
     VERDICT|"VERDICT —"*|VERDICT—*|VERDICT\ -*|VERDICT:*) return 0 ;;
   esac
-  grep -qE '^\*{0,2}VERDICT([: —–-]|$)' "$f" || return 0
+  has_verdict "$f" || return 0
   tmp="${f}.norm.$$"
-  awk 'BEGIN{p=0} /^\*{0,2}VERDICT([: —–-]|$)/{p=1} p{print}' "$f" >"$tmp"
+  VERDICT_RE="$VERDICT_RE" awk 'BEGIN{p=0; re=ENVIRON["VERDICT_RE"]} $0 ~ re {p=1} p{print}' "$f" >"$tmp"
   # Unwrap bold on the first kept line if still present.
   sed -E '1s/^\*\*[[:space:]]*(VERDICT)/\1/;1s/(VERDICT[^*:]*)\*\*/\1/' "$tmp" >"${tmp}.2"
   mv "${tmp}.2" "$f"
@@ -463,23 +298,19 @@ detect_usage_limit() {
 
 # Prefer durable report.md (survives Claude cleanup turns) over final stdout.
 finalize_capture() {
-  if [[ -s "$REPORT" ]] && has_verdict "$REPORT"; then
+  if has_verdict "$REPORT"; then
     cp "$REPORT" "$LAST"
-    printf 'ok-report\n' >"$STATUS"
   elif [[ -s "$STDOUT" ]]; then
     cp "$STDOUT" "$LAST"
-    printf 'ok\n' >"$STATUS"
-  elif [[ -s "$LAST" ]]; then
-    printf 'ok\n' >"$STATUS"
-  else
+  elif [[ ! -s "$LAST" ]]; then
     : >"$LAST"
-    printf 'no-verdict\n' >"$STATUS"
   fi
+  : >"$STATUS"
   normalize_verdict "$LAST"
   detect_usage_limit "$LAST"
   if grep -qx 'usage-limit' "$STATUS"; then return 0; fi
   if has_verdict "$LAST"; then
-    if [[ -s "$REPORT" ]] && has_verdict "$REPORT"; then
+    if has_verdict "$REPORT"; then
       printf 'ok-report\n' >"$STATUS"
     else
       printf 'ok\n' >"$STATUS"

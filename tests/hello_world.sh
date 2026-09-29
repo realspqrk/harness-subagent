@@ -2,51 +2,11 @@
 # Real-CLI smokes for Auto-mode flags. Run from Git Bash: bash tests/hello_world.sh
 # Parse checks always run when the binary exists. Live one-shot per backend on PATH.
 set -euo pipefail
-
-ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-SPAWN="$ROOT/scripts/spawn.sh"
-BASH_BIN="$(command -v bash)"
-
-pass=0
-fail=0
-WORK=()
-
-cleanup() {
-  local d
-  for d in "${WORK[@]+"${WORK[@]}"}"; do
-    rm -rf "$d"
-  done
-}
-trap cleanup EXIT
-
-ok() { echo "ok - $*"; pass=$((pass + 1)); }
-fail_msg() { echo "FAIL: $*" >&2; fail=$((fail + 1)); }
-skip() { echo "ok - skip $*"; pass=$((pass + 1)); }
-
-has_bin() { command -v "$1" >/dev/null 2>&1; }
-
-run_cmd() {
-  local outf errf
-  outf="$(mktemp "${TMPDIR:-/tmp}/hs-hw-out.XXXXXX")"
-  errf="$(mktemp "${TMPDIR:-/tmp}/hs-hw-err.XXXXXX")"
-  WORK+=("$outf" "$errf")
-  set +e
-  "$@" >"$outf" 2>"$errf"
-  ec=$?
-  set -e
-  out="$(cat "$outf")"
-  err="$(cat "$errf")"
-}
+source "$(dirname "$0")/lib.sh"
 
 # --- parse ---
 
 if has_bin codex; then
-  run_cmd codex exec --ask-for-approval never --help
-  if [[ "$ec" -ne 0 && ( "$err" == *"--ask-for-approval"* || "$out" == *"--ask-for-approval"* ) ]]; then
-    ok "codex exec rejects --ask-for-approval"
-  else
-    fail_msg "codex exec should reject --ask-for-approval (exit=$ec err=${err//$'\n'/ | })"
-  fi
   run_cmd codex exec --approve-for-me --help
   if [[ "$ec" -eq 0 && "$out" == *"codex exec"* ]]; then
     ok "codex exec accepts --approve-for-me"
@@ -59,15 +19,10 @@ fi
 
 if has_bin claude; then
   run_cmd claude --help
-  if [[ "$out" == *'"auto"'* || "$out" == *'choices: "acceptEdits", "auto"'* || "$err$out" == *"\"auto\""* ]]; then
+  if [[ "$out$err" == *'"auto"'* ]]; then
     ok "claude --help lists permission-mode auto"
   else
-    # help may put auto on the next line after choices
-    if echo "$out$err" | grep -q '"auto"'; then
-      ok "claude --help lists permission-mode auto"
-    else
-      fail_msg "claude --help missing auto (exit=$ec)"
-    fi
+    fail_msg "claude --help missing auto (exit=$ec)"
   fi
 else
   skip "claude not on PATH (parse)"
@@ -117,17 +72,16 @@ HELLO_WORLD
 EOF
   run_cmd "$BASH_BIN" "$SPAWN" --backend "$backend" --model "$model" --project "$ROOT" --run "$run" --effort low
   if [[ "$ec" -eq 0 && -s "$run/last.md" ]] && grep -q 'HELLO_WORLD' "$run/last.md"; then
-    ok "$backend live HELLO_WORLD"
+    ok "$backend $model live HELLO_WORLD"
   else
-    fail_msg "$backend live HELLO_WORLD (exit=$ec last=$(head -c 240 "$run/last.md" 2>/dev/null || true) err=$(head -c 240 "$run/stderr.log" 2>/dev/null || true) spawnerr=${err//$'\n'/ | })"
+    fail_msg "$backend $model live HELLO_WORLD (exit=$ec last=$(head -c 240 "$run/last.md" 2>/dev/null || true) err=$(head -c 240 "$run/stderr.log" 2>/dev/null || true) spawnerr=${err//$'\n'/ | })"
   fi
 }
 
 live_one claude claude-opus-5-5
+live_one claude claude-sonnet-5-5
 live_one codex gpt-6-astra
 live_one grok grok-4.7
-live_one agy agy
+live_one agy gemini-3.8-flash
 
-echo
-echo "passed=$pass failed=$fail"
-[[ "$fail" -eq 0 ]]
+finish

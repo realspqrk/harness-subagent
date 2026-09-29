@@ -81,10 +81,9 @@ def check_effort(backend, model_id, effort):
         die("%s effort must be one of %s" % (model_id, ", ".join(allowed)))
 
 
-def parse_now(text):
-    if text is None:
-        return datetime.now().astimezone().replace(tzinfo=None)
-    raw = text.strip()
+def parse_stamp(text):
+    """Naive local datetime from an ISO-like stamp, or None. Offsets are dropped."""
+    raw = text.strip().rstrip(".")
     if raw.endswith("Z"):
         raw = raw[:-1]
     raw = re.sub(r"[+-]\d{2}:?\d{2}$", "", raw)
@@ -94,7 +93,16 @@ def parse_now(text):
             return datetime.strptime(raw, fmt)
         except ValueError:
             pass
-    die("invalid --now")
+    return None
+
+
+def parse_now(text):
+    if text is None:
+        return datetime.now().astimezone().replace(tzinfo=None)
+    now = parse_stamp(text)
+    if now is None:
+        die("invalid --now")
+    return now
 
 
 def parse_clock(hour, minute, ampm, dow, now):
@@ -121,20 +129,6 @@ def parse_clock(hour, minute, ampm, dow, now):
     return target
 
 
-def parse_iso_stamp(text, now):
-    raw = text.strip().rstrip(".")
-    if raw.endswith("Z"):
-        raw = raw[:-1]
-    raw = re.sub(r"[+-]\d{2}:?\d{2}$", "", raw)
-    raw = raw.replace("T", " ")
-    for fmt in ("%Y-%m-%d %H:%M:%S", "%Y-%m-%d %H:%M"):
-        try:
-            return datetime.strptime(raw, fmt)
-        except ValueError:
-            pass
-    return None
-
-
 def limit_decision(text, now):
     deltas = []
     for match in re.finditer(r"Retry-After:\s*(\d+)", text, re.I):
@@ -143,7 +137,7 @@ def limit_decision(text, now):
         r"(\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}(?::\d{2})?(?:Z|[+-]\d{2}:?\d{2})?)",
         text,
     ):
-        stamp = parse_iso_stamp(match.group(1), now)
+        stamp = parse_stamp(match.group(1))
         if stamp is not None:
             deltas.append((stamp - now).total_seconds())
     clock = re.compile(
