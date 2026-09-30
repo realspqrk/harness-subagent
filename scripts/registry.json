@@ -73,8 +73,15 @@
           "efforts": ["low", "medium", "high", "xhigh", "max", "ultra"]
         },
         {
+          "id": "gpt-6.1-sol",
+          "say": ["sol", "gpt-6.1 sol", "gpt-6.1-sol", "6.1 sol"],
+          "input_usd_per_mtok": 2,
+          "output_usd_per_mtok": 10,
+          "efforts": ["low", "medium", "high", "xhigh", "max", "ultra"]
+        },
+        {
           "id": "gpt-6-sol",
-          "say": ["sol", "gpt-6 sol", "gpt-6-sol"],
+          "say": ["gpt-6 sol", "gpt-6-sol"],
           "input_usd_per_mtok": 2,
           "output_usd_per_mtok": 10,
           "efforts": ["low", "medium", "high", "xhigh", "max", "ultra"]

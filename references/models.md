@@ -1,6 +1,6 @@
 # Models
 
-Spoken names resolve to these ids. Prices are USD per million tokens, standard rate, short context, as published on 2026-09-22, plus Sonnet 5.5 on 2026-09-29. A higher effort does not change the per-token rate. It spends more tokens, and those tokens are billed at the output rate.
+Spoken names resolve to these ids. Prices are USD per million tokens, standard rate, short context, as published on 2026-09-22, plus Sonnet 5.5 on 2026-09-29 and GPT-6.1 Sol on 2026-09-30. A higher effort does not change the per-token rate. It spends more tokens, and those tokens are billed at the output rate.
 
 Pass `--effort` yourself. If you omit it, the CLI uses its own default.
 
@@ -56,7 +56,8 @@ Sources: https://platform.claude.com/docs/en/about-claude/pricing, https://code.
 | Say | Id | Input | Output | Efforts |
 |---|---|---:|---:|---|
 | Astra | `gpt-6-astra` | 10 | 50 | low, medium, high, xhigh, max, ultra |
-| Sol, GPT-6 Sol | `gpt-6-sol` | 2 | 10 | low, medium, high, xhigh, max, ultra |
+| Sol, GPT-6.1 Sol | `gpt-6.1-sol` | 2 | 10 | low, medium, high, xhigh, max, ultra |
+| GPT-6 Sol | `gpt-6-sol` | 2 | 10 | low, medium, high, xhigh, max, ultra |
 | Luna, GPT-6 Luna | `gpt-6-luna` | 0.10 | 0.50 | low, medium, high, xhigh, max |
 | GPT-5.6 Sol | `gpt-5.6-sol` | 4 | 20 | low, medium, high, xhigh, max, ultra |
 | Terra, GPT-5.6 Terra | `gpt-5.6-terra` | 2 | 12 | low, medium, high, xhigh, max, ultra |
@@ -64,7 +65,7 @@ Sources: https://platform.claude.com/docs/en/about-claude/pricing, https://code.
 | GPT-5.5 | `gpt-5.5` | 5 | 30 | low, medium, high, xhigh |
 | GPT-5.4 | `gpt-5.4` | 2.50 | 15 | low, medium, high, xhigh |
 
-Saying Sol or Luna selects the GPT-6 ids. GPT-5.6 Sol and GPT-5.6 Luna stay under those versioned names. There is no GPT-6 Terra as of 2026-09-23, so Terra still selects `gpt-5.6-terra`. GPT-5.4 is retired for ChatGPT sign-in as of 2026-08-31. GPT-5.6 Sol's 4/20 price is promotional at least through 2026-11-21. Prices above are standard short-context rates. Ultra is a product mode that runs parallel agents. It is not a separate per-token price. The API pages for GPT-6 Sol and Luna also list `none` and default to medium. This CLI's catalog does not list `none`. It does list `ultra` for Astra and GPT-6 Sol.
+GPT-6.1 Sol shipped 2026-09-29 at the GPT-6 Sol price. The codex-cli 0.159.2 catalog lists it. Saying Sol selects `gpt-6.1-sol`. Saying Luna selects `gpt-6-luna`. GPT-6 Sol, GPT-5.6 Sol, and GPT-5.6 Luna are still served and stay under those versioned names. There is no GPT-6.1 Astra, GPT-6.1 Luna, or GPT-6 Terra as of 2026-09-30, so Terra still selects `gpt-5.6-terra`. GPT-5.4 is retired for ChatGPT sign-in as of 2026-08-31. GPT-5.6 Sol's 4/20 price is promotional at least through 2026-11-21. Prices above are standard short-context rates. Ultra is a product mode that runs parallel agents. It is not a separate per-token price. The API pages for GPT-6 Sol and Luna also list `none` and default to medium. The GPT-6.1 Sol API page lists low through max, without `none`, and defaults to medium. This CLI's catalog does not list `none`. It does list `ultra` for Astra, GPT-6.1 Sol, and GPT-6 Sol. In codex-cli 0.159.2 the catalog default effort is `low` for GPT-6.1 Sol and `medium` for Astra and GPT-6 Sol.
 
 | Effort | What OpenAI says |
 |---|---|
@@ -79,12 +80,20 @@ Published scores. These are not one shared test.
 
 | Model | Benchmark | Score | Effort label |
 |---|---|---:|---|
+| GPT-6.1 Sol | DeepSWE v1.1 | 75.2% | high |
+| GPT-6 Sol | DeepSWE v1.1 | 68.8% | max, called its best score |
+| GPT-6.1 Sol | FrontierCode v1.1 | 58.1% | low |
+| GPT-6.1 Sol | FrontierCode v1.1 | 60.4% | medium, named in the cost sentence |
+| GPT-6 Sol | FrontierCode v1.1 | 50.5% | low |
+| GPT-6.1 Sol | OSWorld 2.0 offline | 71.4% | max |
+| Astra | OSWorld 2.0 offline | 73.5% | max |
+| GPT-6.1 Sol | AutomationBench | 31.7% | medium |
 | Astra | Terminal-Bench 4.0 | 57.9% | maximum across efforts, winning effort not named |
 | GPT-5.6 Sol | Terminal-Bench 4.0 | 37.3% | maximum across efforts, winning effort not named |
 | GPT-5.5 | Terminal-Bench 2.0 | 82.7% | xhigh |
 | GPT-5.4 | Terminal-Bench 2.0 | 75.1% | xhigh |
 
-Sources: https://developers.openai.com/api/docs/pricing, https://developers.openai.com/api/docs/models/gpt-6-sol, and https://developers.openai.com/api/docs/models/gpt-6-luna (accessed 2026-09-23). Earlier scores: https://openai.com/index/gpt-6-astra/ and https://openai.com/index/introducing-gpt-5-5/ (accessed 2026-09-22). No GPT-6 Sol or Luna benchmark score is copied here, because those pages did not publish one.
+Sources: https://developers.openai.com/api/docs/pricing, https://developers.openai.com/api/docs/models/gpt-6-sol, and https://developers.openai.com/api/docs/models/gpt-6-luna (accessed 2026-09-23), and https://developers.openai.com/api/docs/models/gpt-6.1-sol (accessed 2026-09-30). Earlier scores: https://openai.com/index/gpt-6-astra/ and https://openai.com/index/introducing-gpt-5-5/ (accessed 2026-09-22). GPT-6.1 Sol scores: OpenAI Developers posts https://x.com/OpenAIDevs/status/2104993067942219873 and https://x.com/OpenAIDevs/status/2104993086099398854, and Cognition, which maintains FrontierCode, at https://devin.ai/blog/gpt-6-1-sol (accessed 2026-09-30). OpenAI's launch charts plot score against cost without labeling the effort on each point, so no score is read from them. No Luna score is copied here, because its page did not publish one.
 
 ## Grok Build (`grok`)
 

@@ -13,7 +13,8 @@ while IFS='|' read -r say want; do
   if [[ "$got" == "$want" ]]; then ok "'$say' -> $want"; else fail_msg "'$say' -> '$got', want '$want'"; fi
 done <<'EOF'
 Astra|codex gpt-6-astra
-Sol|codex gpt-6-sol
+Sol|codex gpt-6.1-sol
+GPT-6 Sol|codex gpt-6-sol
 GPT-5.6 Sol|codex gpt-5.6-sol
 Luna|codex gpt-6-luna
 Terra|codex gpt-5.6-terra
