@@ -161,6 +161,29 @@ else
   fail_msg "capture codex (exit=$ec status=$(cat "$run/capture-status.txt" 2>/dev/null) err=$err diag=$(cat "$run/capture-errors.log" 2>/dev/null))"
 fi
 
+# --- health (stub CLIs; POSIX Python only, Windows Python cannot exec bash stubs) ---
+
+if [[ "$("$PYTHON" -c 'import os; print(os.name)')" == nt ]]; then
+  skip "health stubs need POSIX Python"
+else
+  HSTUBS="$(mktemp -d "${TMPDIR:-/tmp}/hs-health.XXXXXX")"
+  WORK+=("$HSTUBS")
+  # grok stub: the first `models` after token expiry reports logged out, then refreshes (seen with grok 1.0.4x).
+  cat >"$HSTUBS/grok" <<'SH'
+#!/usr/bin/env bash
+case "$1" in
+  --version) echo "grok stub" ;;
+  models) if [[ -f "$STUB_STATE" ]]; then echo "You are logged in with grok.com."; else : >"$STUB_STATE"; echo "You are not authenticated."; fi ;;
+esac
+SH
+  # codex stub: a binary that cannot start (e.g. the Windows npm shim reached from WSL).
+  printf '#!/usr/bin/env bash\necho "Error: Missing optional dependency" >&2\nexit 1\n' >"$HSTUBS/codex"
+  chmod +x "$HSTUBS/grok" "$HSTUBS/codex"
+  run_cmd env PATH="$HSTUBS:/usr/bin:/bin" STUB_STATE="$HSTUBS/refreshed" "$(command -v "$PYTHON")" "$REG" health
+  if [[ "$out" == *$'grok\tgrok stub\tlogged-in'* ]]; then ok "health: login check retried after a silent token refresh"; else fail_msg "health grok (out=$out)"; fi
+  if [[ "$out" == *$'codex\tbroken\t-'* ]]; then ok "health: a CLI that cannot start is broken, not logged out"; else fail_msg "health codex (out=$out)"; fi
+fi
+
 # --- usage-limit wait decision ---
 
 while IFS='|' read -r text now want name; do

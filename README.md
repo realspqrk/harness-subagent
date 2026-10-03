@@ -26,7 +26,7 @@ This is a [Claude skill](https://code.claude.com/docs/en/skills) in the [Agent S
 ## Installation
 
 ```bash
-npx skills add ptmrio/harness-subagent -g
+npx skills add realspqrk/harness-subagent -g
 ```
 
 That is the [skills.sh](https://skills.sh) installer. `-g` installs at user level, for example `~/.claude/skills/harness-subagent` for Claude Code or `~/.cursor/skills/harness-subagent` for Cursor ([paths](https://github.com/vercel-labs/skills#supported-agents)). Update later with `npx skills update -g`.
@@ -34,7 +34,7 @@ That is the [skills.sh](https://skills.sh) installer. `-g` installs at user leve
 Without npx, clone it into your agent's skills folder:
 
 ```bash
-git clone https://github.com/ptmrio/harness-subagent.git ~/.claude/skills/harness-subagent
+git clone https://github.com/realspqrk/harness-subagent.git ~/.claude/skills/harness-subagent
 ```
 
 **Requirements**
@@ -167,7 +167,7 @@ Opus is the spoken name for Opus 5.5. Codex is the CLI, so the visual-testing li
 
 ## License
 
-[MIT](LICENSE). Gerhard Petermeir / [ptmrio](https://github.com/ptmrio). Issues welcome; PRs are not the default.
+[MIT](LICENSE). Gerhard Petermeir / [realspqrk](https://github.com/realspqrk). Issues welcome; PRs are not the default.
 
 [mit-badge]: https://img.shields.io/badge/License-MIT-blue.svg
 [mit]: LICENSE

@@ -13,7 +13,7 @@ license: MIT
 compatibility: Requires claude, codex, grok, agy, and/or cursor-agent on PATH. Windows needs Git Bash. Python 3.
 metadata:
   author: ptmrio
-  version: "0.4.2"
+  version: "0.4.3"
 ---
 
 # Harness subagent
@@ -69,7 +69,7 @@ Grok cannot be relied on to read the temp run directory. `spawn.sh` copies the p
 
 ## Health
 
-`scripts/health.sh` prints one row per CLI. Columns are name, version, login, update. `--update` runs each vendor update command. Exit 0 when every installed CLI with a login check is logged in. A missing CLI is a failed row.
+`scripts/health.sh` prints one row per CLI. Columns are name, version, login, update. `--update` runs each vendor update command. Exit 0 when every installed CLI with a login check is logged in. A missing CLI is a failed row. `broken` means the binary is on PATH but its version check fails. A failed login check is retried once, because grok reports logged-out on the first call after token expiry while it refreshes silently.
 
 | CLI | Login check | Update |
 |---|---|---|

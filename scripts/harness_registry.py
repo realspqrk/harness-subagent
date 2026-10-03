@@ -177,6 +177,14 @@ def run_checked(argv, timeout):
     return proc.returncode, proc.stdout or "", proc.stderr or ""
 
 
+def check_login(binary, spec):
+    code, out, err = run_checked([binary, *spec["auth"]], 120)
+    expect = (spec.get("auth_expect") or "").casefold()
+    if expect:
+        return "logged-in" if expect in (out + "\n" + err).casefold() else "not-logged-in"
+    return "logged-in" if code == 0 else "not-logged-in"
+
+
 def health(do_update):
     failed = False
     for name, spec in HARNESSES.items():
@@ -188,20 +196,22 @@ def health(do_update):
         version = ""
         if spec.get("version"):
             code, out, err = run_checked([binary, *spec["version"]], 30)
-            version = (out or err).strip().splitlines()[0] if (out or err).strip() else ("ok" if code == 0 else "unknown")
+            if code != 0:
+                # Binary cannot start (e.g. a Windows npm shim reached from WSL); a login check would mislead.
+                print("%s\tbroken\t-\t-" % name)
+                failed = True
+                continue
+            version = (out or err).strip().splitlines()[0] if (out or err).strip() else "ok"
         else:
             version = "present"
         auth_args = spec.get("auth") or []
         if not auth_args:
             login = "login-unknown"
         else:
-            code, out, err = run_checked([binary, *auth_args], 120)
-            blob = (out + "\n" + err).casefold()
-            expect = (spec.get("auth_expect") or "").casefold()
-            if expect:
-                login = "logged-in" if expect in blob else "not-logged-in"
-            else:
-                login = "logged-in" if code == 0 else "not-logged-in"
+            login = check_login(binary, spec)
+            if login != "logged-in":
+                # The first call after token expiry can report logged out while it silently refreshes (grok).
+                login = check_login(binary, spec)
             if login != "logged-in":
                 failed = True
         updated = "-"
