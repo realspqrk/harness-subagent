@@ -81,6 +81,6 @@ Grok cannot be relied on to read the temp run directory. `spawn.sh` copies the p
 
 ## Capture
 
-`spawn.sh` writes `last.md`, `capture-status.txt` (`ok`, `ok-report`, `usage-limit`, or `no-verdict`), and `session.json`. A report containing `VERDICT` wins over the final stdout, because Claude's last message is only the last turn. `ok` means text was captured. It does not mean the task succeeded. Exit 0 with `no-verdict` is not success.
+`spawn.sh` writes `last.md`, `capture-status.txt` (`ok`, `ok-report`, `usage-limit`, or `no-verdict`), and `session.json`. A report containing `VERDICT` wins over the final stdout, because Claude's last message is only the last turn. `ok` means text was captured. It does not mean the task succeeded. Exit 0 with `no-verdict` is not success. On Windows the run directory is handed to the child as `C:/...` (`cygpath -m`), never Git Bash's `/tmp/...`, which a native CLI reads as `<drive>:\tmp`.
 
 Resume needs the session id from that run. Copy `session-id` and `session.json` into a new run directory, write a short continuation `brief.md`, and pass `--resume-id`. The auto-wait path does this itself once.
