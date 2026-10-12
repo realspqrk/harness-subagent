@@ -78,8 +78,31 @@ EOF
   fi
 }
 
+# A claude model without auto mode starts in Manual and every edit is denied,
+# so a text reply can still pass live_one. Prove a write with the cheapest model.
+live_write() {
+  local backend="$1" model="$2" run
+  if ! has_bin "$backend"; then
+    skip "$backend not on PATH (live write)"
+    return 0
+  fi
+  run="$(mktemp -d "${TMPDIR:-/tmp}/hs-hw.XXXXXX")"
+  WORK+=("$run")
+  cat >"$run/brief.md" <<'EOF'
+Create sentinel.txt in the project directory containing exactly the line: WRITE_OK
+Then write report.md in the run directory with the line `VERDICT: done`.
+EOF
+  run_cmd "$BASH_BIN" "$SPAWN" --backend "$backend" --model "$model" --project "$run" --run "$run" --effort low
+  if [[ "$ec" -eq 0 && "$(tr -d '\r' <"$run/sentinel.txt" 2>/dev/null)" == "WRITE_OK" && "$(cat "$run/capture-status.txt" 2>/dev/null)" == "ok-report" ]]; then
+    ok "$backend $model live write"
+  else
+    fail_msg "$backend $model live write (exit=$ec status=$(cat "$run/capture-status.txt" 2>/dev/null || true) last=$(head -c 240 "$run/last.md" 2>/dev/null || true))"
+  fi
+}
+
 live_one claude claude-opus-5-5
 live_one claude claude-sonnet-5-5
+live_write claude claude-haiku-5-5
 live_one codex gpt-6-astra
 live_one codex gpt-6.1-sol
 live_one grok grok-4.7

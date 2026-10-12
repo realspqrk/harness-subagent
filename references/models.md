@@ -1,6 +1,6 @@
 # Models
 
-Spoken names resolve to these ids. Prices are USD per million tokens, standard rate, short context, as published on 2026-09-22, plus Sonnet 5.5 on 2026-09-29 and GPT-6.1 Sol on 2026-09-30. A higher effort does not change the per-token rate. It spends more tokens, and those tokens are billed at the output rate.
+Spoken names resolve to these ids. Prices are USD per million tokens, standard rate, short context, as published on 2026-09-22, plus Sonnet 5.5 on 2026-09-29, GPT-6.1 Sol on 2026-09-30, and Haiku 5.5 on 2026-10-12. A higher effort does not change the per-token rate. It spends more tokens, and those tokens are billed at the output rate.
 
 Pass `--effort` yourself. If you omit it, the CLI uses its own default.
 
@@ -14,18 +14,20 @@ Pass `--effort` yourself. If you omit it, the CLI uses its own default.
 | Fable 5 | `claude-fable-5` | 10 | 50 | low, medium, high, xhigh, max |
 | Sonnet 5.5, Sonnet | `claude-sonnet-5-5` | 2 | 10 | low, medium, high, xhigh, max |
 | Sonnet 5 | `claude-sonnet-5` | 2 | 10 | low, medium, high, xhigh, max |
-| Haiku 4.5, Haiku | `claude-haiku-4-5-20251001` | 1 | 5 | none |
+| Haiku 5.5, Haiku | `claude-haiku-5-5` | 0.10 | 0.50 | low, medium, high, xhigh, max |
 
 Opus 5.5 shipped 2026-09-22. Sonnet 5.5 shipped 2026-09-28 and needs Claude Code 2.1.284 or later. On the Anthropic API the short aliases `opus` and `sonnet` point at Opus 5.5 and Sonnet 5.5. This skill passes the full id. Saying Sonnet selects Sonnet 5.5. Opus 5, Fable 5, and Sonnet 5 are still served and stay under their versioned names.
 
-Sonnet 5.5 recalibrates its effort levels relative to Sonnet 5, so an effort that suited Sonnet 5 is not the same spend on Sonnet 5.5. Claude Code defaults Opus 5.5 and Sonnet 5.5 to `medium`. The Claude Platform API defaults Sonnet 5.5 to `high`.
+Haiku 5.5 shipped 2026-10-07 and needs Claude Code 2.1.293 or later. Saying Haiku selects it. Its price is for prompts up to 100k tokens; above that a request pays 0.50 input and 2.50 output. Haiku 4.5 is not listed, so spawn.sh refuses it. It does not support auto mode, so `claude -p --permission-mode auto` starts in Manual and every edit is denied, which ends in `no-verdict`. Haiku 5.5 supports auto mode. On 2026-10-12 a Haiku 5.5 spawn at `low` wrote a file and returned `ok-report`.
+
+Sonnet 5.5 recalibrates its effort levels relative to Sonnet 5, so an effort that suited Sonnet 5 is not the same spend on Sonnet 5.5. Claude Code defaults Opus 5.5, Sonnet 5.5, and Haiku 5.5 to `medium`. The Claude Platform API defaults Sonnet 5.5 to `high`.
 
 Vendor descriptions, from the Claude Code model docs (accessed 2026-09-29).
 
 | Effort | What Anthropic says |
 |---|---|
 | low | Quick exchanges you review each result of, such as brainstorming, a first sketch, or a rename. |
-| medium | The default on Opus 5.5 and Sonnet 5.5. Day-to-day work with a clear scope, such as implementing a feature. On other models it trades some intelligence for fewer tokens. |
+| medium | The default on Opus 5.5, Sonnet 5.5, and Haiku 5.5. Day-to-day work with a clear scope, such as implementing a feature. On other models it trades some intelligence for fewer tokens. |
 | high | Work where verification matters or edge cases are likely, such as fixing a bug in an existing codebase. The default on Fable 5.1, Fable 5, Opus 5, and Sonnet 5. |
 | xhigh | Deeper reasoning, higher token spend. |
 | max | Hard problems you want worked through without you. May show diminishing returns and overthinking. |
@@ -46,10 +48,14 @@ Published scores that name an effort.
 | Sonnet 5.5 | FrontierCode v1.1 | 46.2% | max |
 | Sonnet 5.5 | CursorBench 4.0 | 55.5% | max |
 | Sonnet 5.5 | CursorBench 4.0 | 39.2% | medium |
+| Haiku 5.5 | FrontierCode v1.1 | 46.4% | max, called its best |
+| Haiku 5.5 | Terminal-Bench 4.0 | 39.2% | max |
+| Haiku 5.5 | CursorBench 4.0 | 48.4% | max |
+| Haiku 5.5 | CursorBench 4.0 | 30.9% | low |
 
 Sonnet 5.5 scores lower on FrontierCode at max than at xhigh. Anthropic's footnote says that at max it more often ran a multi-subagent code review, which led to timeouts or edits beyond the task. The medium and high Sonnet 5.5 rows come from the per-effort cost charts on the announcement page, not its headline table.
 
-Sources: https://platform.claude.com/docs/en/about-claude/pricing, https://code.claude.com/docs/en/model-config, https://www.anthropic.com/news/claude-opus-5-5, and https://www.anthropic.com/claude-sonnet-5-5 (accessed 2026-09-29)
+Sources: https://platform.claude.com/docs/en/about-claude/pricing, https://code.claude.com/docs/en/model-config, https://www.anthropic.com/news/claude-opus-5-5, and https://www.anthropic.com/claude-sonnet-5-5 (accessed 2026-09-29). Haiku 5.5: the same pricing and model-config pages, and https://code.claude.com/docs/en/permission-modes for auto mode support (accessed 2026-10-12). Haiku 5.5 scores: the Haiku 5.5 system card, https://www-cdn.anthropic.com/e1080d6bf5ae2018ea3c2f414064be03232f5be5/Claude%20Haiku%205.5%20System%20Card.pdf, and https://cursor.com/docs/models/claude-haiku-5-5 (accessed 2026-10-12)
 
 ## Codex (`codex`)
 

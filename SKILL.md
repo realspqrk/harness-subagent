@@ -12,8 +12,8 @@ description: >
 license: MIT
 compatibility: Requires claude, codex, grok, agy, and/or cursor-agent on PATH. Windows needs Git Bash. Python 3.
 metadata:
-  author: ptmrio
-  version: "0.4.3"
+  author: realspqrk
+  version: "0.4.4"
 ---
 
 # Harness subagent
