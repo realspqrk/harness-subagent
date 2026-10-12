@@ -51,11 +51,11 @@
           "efforts": ["low", "medium", "high", "xhigh", "max"]
         },
         {
-          "id": "claude-haiku-4-5-20251001",
-          "say": ["haiku 4.5", "haiku"],
-          "input_usd_per_mtok": 1,
-          "output_usd_per_mtok": 5,
-          "efforts": []
+          "id": "claude-haiku-5-5",
+          "say": ["haiku 5.5", "claude haiku 5.5", "haiku"],
+          "input_usd_per_mtok": 0.1,
+          "output_usd_per_mtok": 0.5,
+          "efforts": ["low", "medium", "high", "xhigh", "max"]
         }
       ]
     },

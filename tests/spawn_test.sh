@@ -24,7 +24,7 @@ Fable|claude claude-fable-5-1
 Fable 5|claude claude-fable-5
 Sonnet|claude claude-sonnet-5-5
 Sonnet 5|claude claude-sonnet-5
-Haiku|claude claude-haiku-4-5-20251001
+Haiku|claude claude-haiku-5-5
 Grok 4.7|grok grok-4.7
 EOF
 
@@ -92,8 +92,13 @@ run_cmd "$BASH_BIN" "$SPAWN" --backend claude --model Astra --project "$ROOT" --
 if [[ "$ec" -eq 2 && "$err" == *"not a claude model"* ]]; then ok "a model from another CLI is rejected"; else fail_msg "Astra on claude (exit=$ec err=$err)"; fi
 
 new_run
-run_cmd "$BASH_BIN" "$SPAWN" --model Haiku --effort high --project "$ROOT" --run "$run" --dry-run
-if [[ "$ec" -eq 2 && "$err" == *"does not take --effort"* ]]; then ok "a model without efforts rejects --effort"; else fail_msg "Haiku effort (exit=$ec err=$err)"; fi
+run_cmd "$BASH_BIN" "$SPAWN" --model "Grok 4.5" --effort xhigh --project "$ROOT" --run "$run" --dry-run
+if [[ "$ec" -eq 2 && "$err" == *"effort must be one of"* ]]; then ok "an effort the model lacks is rejected"; else fail_msg "Grok 4.5 xhigh (exit=$ec err=$err)"; fi
+
+# Haiku 4.5 has no auto mode: claude -p starts in Manual and denies every edit.
+new_run
+run_cmd "$BASH_BIN" "$SPAWN" --model "Haiku 4.5" --project "$ROOT" --run "$run" --dry-run
+if [[ "$ec" -eq 2 && "$err" == *"unknown model"* ]]; then ok "Haiku 4.5 is refused"; else fail_msg "Haiku 4.5 (exit=$ec err=$err)"; fi
 
 new_run
 run_cmd "$BASH_BIN" "$SPAWN" --model Sonnet --image "$ROOT/LICENSE" --project "$ROOT" --run "$run" --dry-run
