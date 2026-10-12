@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 # Delegate one task to a coding-agent CLI. Parents must invoke this file, not copy it.
-# Usage: spawn.sh [--backend claude|codex|grok|agy|cursor] --model NAME \
+# Usage: spawn.sh [--backend claude|codex|grok|agy|cursor|muse] --model NAME \
 #                 --project DIR --run DIR [--effort TOKEN] [--image PATH]...
 set -euo pipefail
 
 usage() {
   cat <<'EOF'
-Usage: spawn.sh [--backend claude|codex|grok|agy|cursor] --model NAME \
+Usage: spawn.sh [--backend claude|codex|grok|agy|cursor|muse] --model NAME \
                 --project DIR --run DIR [--effort TOKEN] [--image PATH]...
                 [--resume-id UUID] [--limit-retry] [--dry-run] [--help]
 
@@ -145,7 +145,7 @@ if [[ -n "$EFFORT" ]]; then
   fi
 fi
 case "$BACKEND" in
-  claude|codex|grok|agy|cursor) ;;
+  claude|codex|grok|agy|cursor|muse) ;;
   *) die "unknown backend: $BACKEND" ;;
 esac
 if ((${#IMAGES[@]})) && [[ "$BACKEND" != codex ]]; then
@@ -164,7 +164,12 @@ new_uuid() {
 
 SESSION_PY="$SCRIPT_DIR/session_capture.py"
 GROK_PROMPT_COPY=""
-cleanup() { rm -f ${GROK_PROMPT_COPY:+"$GROK_PROMPT_COPY"}; }
+MUSE_REPORT=""
+cleanup() {
+  rm -f ${GROK_PROMPT_COPY:+"$GROK_PROMPT_COPY"}
+  # A non-empty muse report that was not collected stays for the parent.
+  if [[ -n "$MUSE_REPORT" && ! -s "$MUSE_REPORT" ]]; then rm -f "$MUSE_REPORT"; fi
+}
 trap cleanup EXIT
 session_data() {
   "$PYTHON" -u "$SESSION_PY" "$1" "$RUN" "$PROJECT" "$BACKEND" "$MODEL" "$EFFORT" "${SID-}" "${CLAUDE_CODE_SKIP_PROMPT_HISTORY+x}" "$RESUME_ID"
@@ -178,17 +183,26 @@ if [[ -n "$RESUME_ID" ]]; then
     blocked_capture 'resume unavailable' "$validation_error; no provider launched."
     exit 2
   fi
-elif [[ "$BACKEND" == claude || "$BACKEND" == grok ]]; then
+elif [[ "$BACKEND" == claude || "$BACKEND" == grok || "$BACKEND" == muse ]]; then
   SID="$(new_uuid)"
 fi
 
 # Claude's final stdout is the last turn only. report.md is the durable result.
 CLAUDE_REPORT_HINT="Write the complete report to report.md in the run directory ${RUN} before any cleanup. The first line is VERDICT followed by the result, in plain text."
 
+# Muse's sandbox writes only inside the project; a write to the run dir stalled
+# the run (1.4.6, 2026-10-12). It writes the report there and we collect it.
+# One name per invocation, so stale or concurrent runs never swap reports.
+REPORT_TARGET="$RUN/report.md"
+if [[ "$BACKEND" == muse ]]; then
+  REPORT_TARGET="$PROJECT/.harness-subagent-report-$(new_uuid).md"
+  # Only a real launch owns (and may delete) its hand-off file.
+  if [[ "$DRY" -eq 0 ]]; then MUSE_REPORT="$REPORT_TARGET"; fi
+fi
 PROMPT_FILE="$RUN/prompt.md"
 {
   cat "$BRIEF"
-  printf '\n\nWrite report.md to %s before you exit. The first line is VERDICT followed by the result, in plain text.\n' "$RUN/report.md"
+  printf '\n\nWrite report.md to %s before you exit. The first line is VERDICT followed by the result, in plain text.\n' "$REPORT_TARGET"
 } >"$PROMPT_FILE"
 if [[ "$BACKEND" == grok && "$DRY" -eq 0 ]]; then
   GROK_PROMPT_COPY="$PROJECT/.harness-subagent-brief.md"
@@ -246,6 +260,25 @@ case "$BACKEND" in
     CMD=(cursor-agent -p --trust --force --output-format text
       --workspace "$PROJECT" --add-dir "$RUN" --model "$CURSOR_MODEL")
     if [[ -n "$RESUME_ID" ]]; then CMD+=(--resume "$RESUME_ID"); fi
+    ;;
+  muse)
+    # Windows ships only muse.cmd, a wrapper around a PowerShell launcher.
+    # cmd.exe splits arguments on & and ^, so call the launcher directly.
+    CMD=(muse)
+    if ! command -v muse >/dev/null 2>&1 && command -v muse.cmd >/dev/null 2>&1; then
+      launcher="$(dirname "$(command -v muse.cmd)")/.muse-launcher.ps1"
+      if [[ -f "$launcher" ]] && command -v cygpath >/dev/null 2>&1; then
+        CMD=(powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$(cygpath -w "$launcher")")
+      else
+        CMD=(muse.cmd)
+      fi
+    fi
+    # --disable-approval keeps the sandbox; Meta reserves --yolo for disposable
+    # containers. No --trust-workspace: it also runs the repo's .muse hooks.
+    # --session-id both preassigns and resumes headlessly.
+    CMD+=(exec --disable-approval --model "$MODEL"
+      --prompt-file "$PROMPT_FILE" --session-id "${RESUME_ID:-$SID}")
+    if [[ -n "$EFFORT" ]]; then CMD+=(--effort "$EFFORT"); fi
     ;;
 esac
 
@@ -336,7 +369,7 @@ if [[ "$DRY" -eq 1 ]]; then
   case "$BACKEND" in
     claude|cursor) printf ' < %q > %q 2> %q' "$PROMPT_FILE" "$STDOUT" "$ERR" ;;
     codex) printf ' < %q > %q 2> %q' "$PROMPT_FILE" "$EVENTS" "$ERR" ;;
-    grok) printf ' < /dev/null > %q 2> %q' "$STDOUT" "$ERR" ;;
+    grok|muse) printf ' < /dev/null > %q 2> %q' "$STDOUT" "$ERR" ;;
     agy) printf ' -p "$(cat %q)" < /dev/null > %q 2> %q' "$PROMPT_FILE" "$EVENTS" "$ERR" ;;
   esac
   printf '\n'
@@ -352,7 +385,7 @@ case "$BACKEND" in
   claude|cursor)
     "${CMD[@]}" < "$PROMPT_FILE" > "$STDOUT" 2> "$ERR" || cli_ec=$?
     ;;
-  grok)
+  grok|muse)
     "${CMD[@]}" < /dev/null > "$STDOUT" 2> "$ERR" || cli_ec=$?
     ;;
   codex)
@@ -366,7 +399,21 @@ case "$BACKEND" in
     capture_ec="${ps[1]}"
     ;;
 esac
+handoff_failed=0
+if [[ -n "$MUSE_REPORT" && -s "$MUSE_REPORT" ]]; then
+  # Publish only a complete copy; delete the source only after that.
+  if cp -f "$MUSE_REPORT" "$REPORT.part" 2>/dev/null && mv -f "$REPORT.part" "$REPORT" 2>/dev/null; then
+    rm -f "$MUSE_REPORT"
+  else
+    rm -f "$REPORT.part" 2>/dev/null || true
+    handoff_failed=1
+  fi
+fi
 finalize_capture
+if [[ "$handoff_failed" -eq 1 ]]; then
+  blocked_capture 'report hand-off failed' "The child's report stays at $MUSE_REPORT." || true
+  if [[ "$cli_ec" -eq 0 ]]; then cli_ec=2; fi
+fi
 if [[ "$capture_ec" -ne 0 ]]; then
   if ! grep -qx 'usage-limit' "$STATUS"; then
     blocked_capture 'session capture failed' "$(cat "$DIAG")"
@@ -395,7 +442,7 @@ Prior report, if any: $RUN/report.md
 Original brief: $RUN/brief.md
 
 ## Done when
-Finish the original task. Write report.md in this run directory before you exit.
+Finish the original task. Write the report where the line below says, before you exit.
 EOF
       echo "spawn.sh: usage limit, waiting ${secs}s then resuming ${sid}" >&2
       sleep "$secs"

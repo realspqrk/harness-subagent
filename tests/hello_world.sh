@@ -81,19 +81,21 @@ EOF
 # A claude model without auto mode starts in Manual and every edit is denied,
 # so a text reply can still pass live_one. Prove a write with the cheapest model.
 live_write() {
-  local backend="$1" model="$2" run
+  local backend="$1" model="$2" run proj
   if ! has_bin "$backend"; then
     skip "$backend not on PATH (live write)"
     return 0
   fi
   run="$(mktemp -d "${TMPDIR:-/tmp}/hs-hw.XXXXXX")"
-  WORK+=("$run")
+  # Separate project: muse can only write there and hands its report over.
+  proj="$(mktemp -d "${TMPDIR:-/tmp}/hs-proj.XXXXXX")"
+  WORK+=("$run" "$proj")
   cat >"$run/brief.md" <<'EOF'
 Create sentinel.txt in the project directory containing exactly the line: WRITE_OK
-Then write report.md in the run directory with the line `VERDICT: done`.
+Then write the report with the line `VERDICT: done`.
 EOF
-  run_cmd "$BASH_BIN" "$SPAWN" --backend "$backend" --model "$model" --project "$run" --run "$run" --effort low
-  if [[ "$ec" -eq 0 && "$(tr -d '\r' <"$run/sentinel.txt" 2>/dev/null)" == "WRITE_OK" && "$(cat "$run/capture-status.txt" 2>/dev/null)" == "ok-report" ]]; then
+  run_cmd "$BASH_BIN" "$SPAWN" --backend "$backend" --model "$model" --project "$proj" --run "$run" --effort low
+  if [[ "$ec" -eq 0 && "$(tr -d '\r' <"$proj/sentinel.txt" 2>/dev/null)" == "WRITE_OK" && "$(ls -A "$proj")" == sentinel.txt && "$(cat "$run/capture-status.txt" 2>/dev/null)" == "ok-report" ]]; then
     ok "$backend $model live write"
   else
     fail_msg "$backend $model live write (exit=$ec status=$(cat "$run/capture-status.txt" 2>/dev/null || true) last=$(head -c 240 "$run/last.md" 2>/dev/null || true))"
@@ -107,5 +109,7 @@ live_one codex gpt-6-astra
 live_one codex gpt-6.1-sol
 live_one grok grok-4.7
 live_one agy gemini-3.8-flash
+live_one muse muse-wonder-1.0
+live_write muse muse-spark-1.3
 
 finish

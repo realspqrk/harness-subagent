@@ -26,6 +26,10 @@ Sonnet|claude claude-sonnet-5-5
 Sonnet 5|claude claude-sonnet-5
 Haiku|claude claude-haiku-5-5
 Grok 4.7|grok grok-4.7
+Muse|muse muse-wonder-1.0
+Wonder|muse muse-wonder-1.0
+Spark|muse muse-spark-1.3
+Spark 1.2|muse muse-spark-1.2
 EOF
 
 # No spoken name or id may point at two models.
@@ -85,6 +89,18 @@ else
   fail_msg "cursor dry-run (exit=$ec out=$out err=$err)"
 fi
 
+new_run
+run_cmd "$BASH_BIN" "$SPAWN" --model Spark --effort max --project "$ROOT" --run "$run" --dry-run
+if [[ "$ec" -eq 0 && "$out" == *"exec --disable-approval"* && "$out" == *"--model muse-spark-1.3"* && "$out" == *"--effort max"* && "$out" == *"--session-id"* && "$out" == *"--prompt-file"* && "$out" != *"--yolo"* && "$out" != *"--trust-workspace"* ]]; then
+  ok "muse: headless exec, sandbox kept, effort, session id"
+else
+  fail_msg "muse dry-run (exit=$ec out=$out err=$err)"
+fi
+
+new_run
+run_cmd "$BASH_BIN" "$SPAWN" --model "Spark 1.2" --effort max --project "$ROOT" --run "$run" --dry-run
+if [[ "$ec" -eq 2 && "$err" == *"effort must be one of"* ]]; then ok "muse: Spark 1.2 refuses max"; else fail_msg "Spark 1.2 max (exit=$ec err=$err)"; fi
+
 # --- refusals ---
 
 new_run
@@ -143,7 +159,20 @@ else
   printf 'VERDICT — CODEX_OK\n' >"$o"
 fi
 SH
-chmod +x "$STUBS/claude" "$STUBS/codex"
+# muse stub: its sandbox only lets it write inside the project (cwd). It writes
+# report.md where the prompt file names it and refuses any path outside cwd.
+cat >"$STUBS/muse" <<'SH'
+#!/usr/bin/env bash
+pf=""
+while [[ $# -gt 0 ]]; do [[ "$1" == --prompt-file ]] && pf="$2"; shift; done
+dest="$(sed -n 's/^Write report\.md to \(.*\) before you exit\..*/\1/p' "$pf" | tail -n 1)"
+case "$dest" in
+  "$(pwd -P)"/*|"$(cygpath -m "$(pwd -P)" 2>/dev/null)"/*) printf 'VERDICT — MUSE_OK\n' >"$dest" ;;
+  *) echo "sandbox: write outside workspace denied: $dest" >&2 ;;
+esac
+echo "Done."
+SH
+chmod +x "$STUBS/claude" "$STUBS/codex" "$STUBS/muse"
 
 capture() {  # capture <stdout> <report or empty> <model>; sets $run
   new_run
@@ -177,6 +206,22 @@ if [[ "$ec" -eq 0 && "$(cat "$run/capture-status.txt")" == ok && "$(tr -d '\r\n'
   ok "capture: codex thread id persisted from JSONL"
 else
   fail_msg "capture codex (exit=$ec status=$(cat "$run/capture-status.txt" 2>/dev/null) err=$err diag=$(cat "$run/capture-errors.log" 2>/dev/null))"
+fi
+
+# A stale report from an earlier or concurrent muse run must not be collected,
+# and a dry run must not delete it.
+proj="$(mktemp -d "${TMPDIR:-/tmp}/hs-proj.XXXXXX")"
+WORK+=("$proj")
+printf 'VERDICT — STALE\n' >"$proj/.harness-subagent-report-0b7e7c6e-1f2a-4c3d-9e8f-123456789abc.md"
+new_run
+run_cmd "$BASH_BIN" "$SPAWN" --model Wonder --project "$proj" --run "$run" --dry-run
+new_run
+run_cmd env PATH="$STUBS:$PATH" "$BASH_BIN" "$SPAWN" --model Wonder --project "$proj" --run "$run"
+left="$(ls -A "$proj" | tr '\n' ' ')"
+if [[ "$ec" -eq 0 && "$(cat "$run/capture-status.txt")" == ok-report && "$(head -n 1 "$run/last.md")" == "VERDICT — MUSE_OK" && "$left" == ".harness-subagent-report-0b7e7c6e-1f2a-4c3d-9e8f-123456789abc.md " && -s "$run/session-id" ]]; then
+  ok "capture: muse collects only its own in-project report"
+else
+  fail_msg "capture muse (exit=$ec status=$(cat "$run/capture-status.txt" 2>/dev/null) last=$(head -c 200 "$run/last.md" 2>/dev/null) err=$err stderr=$(cat "$run/stderr.log" 2>/dev/null) left=$left)"
 fi
 
 # The worker and capture must agree on one run dir. Git Bash shows %TEMP% as

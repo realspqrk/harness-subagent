@@ -1,6 +1,6 @@
 # Models
 
-Spoken names resolve to these ids. Prices are USD per million tokens, standard rate, short context, as published on 2026-09-22, plus Sonnet 5.5 on 2026-09-29, GPT-6.1 Sol on 2026-09-30, and Haiku 5.5 on 2026-10-12. A higher effort does not change the per-token rate. It spends more tokens, and those tokens are billed at the output rate.
+Spoken names resolve to these ids. Prices are USD per million tokens, standard rate, short context, as published on 2026-09-22, plus Sonnet 5.5 on 2026-09-29, GPT-6.1 Sol on 2026-09-30, and Haiku 5.5 and the Muse models on 2026-10-12. A higher effort does not change the per-token rate. It spends more tokens, and those tokens are billed at the output rate.
 
 Pass `--effort` yourself. If you omit it, the CLI uses its own default.
 
@@ -121,6 +121,49 @@ Prices below are the global endpoint under 200k prompt tokens. At 200k and above
 | Terminal-Bench 4.0 | 37.6% | xHigh |
 
 Source: https://x.ai/news/grok-4-7 (2026-09-21) and https://docs.x.ai/developers/pricing (accessed 2026-09-22).
+
+## Muse Code (`muse`)
+
+Meta's API has one price at every context length, up to 1,048,576 tokens. Reasoning tokens bill as output.
+
+| Say | Id | Input | Output | Efforts |
+|---|---|---:|---:|---|
+| Muse Wonder, Wonder, Muse | `muse-wonder-1.0` | 4 | 20 | minimal, low, medium, high, xhigh, max, ultra |
+| Spark 1.3, Spark | `muse-spark-1.3` | 1.25 | 4.25 | minimal, low, medium, high, xhigh, max, ultra |
+| Spark 1.2 | `muse-spark-1.2` | 1.25 | 4.25 | minimal, low, medium, high, xhigh, ultra |
+
+Muse Wonder shipped 2026-10-12, in preview. Saying Muse or Wonder selects it. Spark 1.3 shipped 2026-09-02 and is the one Meta recommends for new work. Muse Code 1.4.6 documents Spark 1.2 as its default. Muse Wonder Full is a Muse Code subscription model with no published id. Choosing `max` on Wonder does not select it, so it is not listed. Spark 1.1 runs only on the Model API, not in Muse Code. The `-contributor` ids, priced at 0.10/0.20, let Meta train on your sessions. They are not listed, so `spawn.sh` refuses them.
+
+The CLI defaults to `high`. `none` fails on Meta models. On 2026-10-12 the API refused `max` on Spark 1.2 and listed minimal through xhigh. `ultra` is a Muse Code setting, not an API value. It sends the model's highest level, or `xhigh` where the model has no higher one, and it makes Muse Code delegate more.
+
+| Effort | What Meta says |
+|---|---|
+| minimal | Shortest reasoning pass. |
+| low | Light reasoning. Direct-answer tasks. |
+| medium | Moderate depth. |
+| high | Deep reasoning. The CLI default. Multi-step code generation, architecture trade-offs, planning. |
+| xhigh | Deeper reasoning, an optional premium-precision level. |
+| max | Extended reasoning beyond xhigh, with more tokens at the same per-token price. |
+| ultra | Muse Code only. The model's highest level, with more delegation. |
+
+Published scores that name an effort. These are not one shared test.
+
+| Model | Benchmark | Score | Effort on that score |
+|---|---|---:|---|
+| Muse Wonder | Terminal-Bench 4.0 (Artificial Analysis run) | 52.0% | max |
+| Muse Wonder | DeepSWE v1.1 | 78.8% | max |
+| Spark 1.3 | DeepSWE v1.1 | 75.4% | max, mini-swe-agent harness |
+| Spark 1.2 | DeepSWE v1.1 | 55.0% | xhigh |
+| Spark 1.3 | Terminal-Bench 2.1 | 88.8% | max |
+| Spark 1.3 | Terminal-Bench 2.1 | 89.2% | xhigh |
+| Spark 1.2 | Terminal-Bench 2.1 | 82.9% | xhigh |
+| Spark 1.3 | CursorBench 4.0 | 41.6% | max |
+| Spark 1.3 | CursorBench 4.0 | 33.4% | high |
+| Spark 1.3 | CursorBench 4.0 | 29.3% | low |
+
+The Wonder rows are read from Meta's launch scorecard image. Every column on it is labeled `(max)`. No FrontierCode score is published for any Muse model.
+
+Sources: https://dev.meta.ai/docs/models, https://dev.meta.ai/docs/pricing-rate-limits, https://dev.meta.ai/docs/reasoning, https://dev.meta.ai/docs/muse-code/configuration, https://research.meta.ai/blog/muse-wonder, https://research.meta.ai/static/muse-wonder-model-card, https://x.com/AIatMeta/status/2109691150932025836 (scorecard), https://research.meta.ai/static/muse-spark-1-3-multimodal-evaluation-methodology, and https://cursor.com/cursorbench (accessed 2026-10-12).
 
 ## Antigravity (`agy`) and Cursor CLI (`cursor`)
 
