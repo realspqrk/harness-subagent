@@ -3,7 +3,7 @@
 import json, pathlib, re, sys
 action, run, project, backend, model, effort, sid, skip, resume = sys.argv[1:]
 run = pathlib.Path(run).resolve()
-key = {'claude': 'session_id', 'grok': 'session_id', 'codex': 'thread_id', 'agy': 'conversation_id', 'cursor': 'session_id'}[backend]
+key = {'claude': 'session_id', 'grok': 'session_id', 'codex': 'thread_id', 'agy': 'conversation_id', 'cursor': 'session_id', 'muse': 'session_id'}[backend]
 uuid = re.compile(r'[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}')
 
 def load_identity():

@@ -29,7 +29,8 @@ trap cleanup EXIT
 ok() { echo "ok - $*"; pass=$((pass + 1)); }
 fail_msg() { echo "FAIL: $*" >&2; fail=$((fail + 1)); }
 skip() { echo "ok - skip $*"; pass=$((pass + 1)); }
-has_bin() { command -v "$1" >/dev/null 2>&1; }
+# Windows launchers such as muse ship only as NAME.cmd.
+has_bin() { command -v "$1" >/dev/null 2>&1 || command -v "$1.cmd" >/dev/null 2>&1; }
 
 # Run a command; sets $ec, $out, $err.
 run_cmd() {

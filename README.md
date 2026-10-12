@@ -8,6 +8,7 @@
 [![Codex][codex-badge]][codex]
 [![Grok Build][grok-badge]][grok]
 [![Cursor CLI][cursor-badge]][cursor]
+[![Muse Code][muse-badge]][muse]
 
 Ever wanted to call **Codex** from **Claude Code**?  
 Ever wanted **Grok Build** to invoke **Claude Code**?  
@@ -17,7 +18,7 @@ That is this skill. You stay in the agent you already use. It becomes the parent
 
 The child is not an oracle. A model that reviews its own work repeats its own blind spots. A model trained by a different vendor may not. That value is lost if the parent forwards the answer without judging it.
 
-Supported child CLIs: Claude Code (`claude`), Codex (`codex`), Grok Build (`grok`), Antigravity (`agy`), and the Cursor CLI (`cursor-agent`). The host picks the CLI, the model, and the effort. The skill does not rank jobs or assign personas.
+Supported child CLIs: Claude Code (`claude`), Codex (`codex`), Grok Build (`grok`), Antigravity (`agy`), the Cursor CLI (`cursor-agent`), and Meta's Muse Code (`muse`). The host picks the CLI, the model, and the effort. The skill does not rank jobs or assign personas.
 
 This is a [Claude skill](https://code.claude.com/docs/en/skills) in the [Agent Skills](https://agentskills.io) format. Any agent that can run a shell command in the background can use it.
 
@@ -39,7 +40,7 @@ git clone https://github.com/realspqrk/harness-subagent.git ~/.claude/skills/har
 
 **Requirements**
 
-- At least one of `claude`, `codex`, `grok`, `agy`, or `cursor-agent` on `PATH` and logged in.
+- At least one of `claude`, `codex`, `grok`, `agy`, `cursor-agent`, or `muse` on `PATH` and logged in.
 - Python 3 (`python` or `python3`).
 - Windows: Git Bash. The parent runs `scripts/spawn.sh` through Git Bash. [SKILL.md](SKILL.md) has the exact invocation.
 
@@ -60,15 +61,16 @@ codex    codex-cli 0.155.1       logged-in       -
 grok     missing                 -               -
 agy      present                 login-unknown   -
 cursor   2026.09.08-6caf4ff      logged-in       -
+muse     Muse Code 1.4.6 (1.4.6-R6000.1)  login-unknown   -
 ```
 
-The exit code is 0 only when every CLI is present, every CLI with a login check is logged in, and (with `--update`) every update succeeded. A CLI you never use shows up as `missing` and makes the exit code 1. Read the rows. `agy` has no login command, so it always reports `login-unknown`. The per-CLI login and update commands are in the Health section of [SKILL.md](SKILL.md#health).
+The exit code is 0 only when every CLI is present, every CLI with a login check is logged in, and (with `--update`) every update succeeded. A CLI you never use shows up as `missing` and makes the exit code 1. Read the rows. `agy` and `muse` have no login status command, so they always report `login-unknown`. The per-CLI login and update commands are in the Health section of [SKILL.md](SKILL.md#health).
 
 ## Use it
 
 The protocol is [SKILL.md](SKILL.md). This is the short version.
 
-1. **You name the CLI and the model.** Spoken names such as Opus 5.5, Fable, Sonnet 5.5, Astra, Sol, Terra, Luna, and Grok 4.7 resolve to exact ids in [references/models.md](references/models.md), which also lists prices and effort levels. For Antigravity and Cursor, pass the id that CLI accepts. If you name neither CLI nor model, the parent asks once.
+1. **You name the CLI and the model.** Spoken names such as Opus 5.5, Fable, Sonnet 5.5, Astra, Sol, Terra, Luna, Grok 4.7, Muse Wonder, and Spark resolve to exact ids in [references/models.md](references/models.md), which also lists prices and effort levels. For Antigravity and Cursor, pass the id that CLI accepts. If you name neither CLI nor model, the parent asks once.
 2. **The parent writes a brief.** It creates `brief.md` in a new temp run directory: one task sentence, where to look, what was already tried, and when it is done. It names paths. It does not paste the repo.
 3. **The parent runs `scripts/spawn.sh` in the background** and waits for it to exit.
 4. **The parent judges the report.** It reads `report.md` (or `last.md`) and `capture-status.txt`, then says what it agrees with, what it does not, and what it will do. A pasted report is not an answer.
@@ -181,3 +183,5 @@ Opus is the spoken name for Opus 5.5. Codex is the CLI, so the visual-testing li
 [grok]: https://docs.x.ai
 [cursor-badge]: https://img.shields.io/badge/Cursor-CLI-000000
 [cursor]: https://cursor.com/docs/cli/overview
+[muse-badge]: https://img.shields.io/badge/Muse%20Code-exec-0866ff
+[muse]: https://dev.meta.ai/docs/muse-code

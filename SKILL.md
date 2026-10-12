@@ -3,17 +3,17 @@ name: harness-subagent
 description: >
   Delegate a bounded task to another coding-agent CLI the way a parent agent
   delegates to a subagent. CLIs are Claude Code, Codex, Grok Build, Antigravity
-  (agy), and the Cursor CLI (cursor-agent). Use when the user says
+  (agy), the Cursor CLI (cursor-agent), and Muse Code (muse). Use when the user says
   harness-subagent, or names a CLI or a model such as Astra, Sol, Opus, Opus 5.5,
-  Fable, Sonnet, Sonnet 5.5, Haiku, or Grok 4.7. Do not use to install those
+  Fable, Sonnet, Sonnet 5.5, Haiku, Grok 4.7, Muse, Wonder, or Spark. Do not use to install those
   CLIs. Do not use if this session was launched by this skill (the prompt starts
   with YOU ARE THE WORKER, or HARNESS_SUBAGENT_RUN is set). Do that job. Do not
   delegate again.
 license: MIT
-compatibility: Requires claude, codex, grok, agy, and/or cursor-agent on PATH. Windows needs Git Bash. Python 3.
+compatibility: Requires claude, codex, grok, agy, cursor-agent, and/or muse on PATH. Windows needs Git Bash. Python 3.
 metadata:
   author: realspqrk
-  version: "0.4.4"
+  version: "0.5.0"
 ---
 
 # Harness subagent
@@ -24,7 +24,7 @@ The host decides which CLI, which model, and which effort. This skill does not r
 
 ## Delegate
 
-1. Take the CLI and model from the user. Spoken names are in [references/models.md](references/models.md). If they named neither, ask once. Do not launch your own CLI family unless they named it this turn. Cursor, cursor-agent, and Grok Bot are the `cursor` family. Grok Build is `grok`. Claude Code is `claude`. Codex is `codex`. Antigravity is `agy`.
+1. Take the CLI and model from the user. Spoken names are in [references/models.md](references/models.md). If they named neither, ask once. Do not launch your own CLI family unless they named it this turn. Cursor, cursor-agent, and Grok Bot are the `cursor` family. Grok Build is `grok`. Claude Code is `claude`. Codex is `codex`. Antigravity is `agy`. Muse Code is `muse`.
 2. Pick `--effort` from the tables in [references/models.md](references/models.md) when the task is large enough that the vendor default is a guess. Omit `--effort` to keep the CLI default. Prices are per token. Higher effort spends more tokens at the same rate.
 3. Write `brief.md` in a new temp run directory. Use the shape below.
 4. Run `scripts/spawn.sh` in the background. On Windows, invoke Git Bash with the script path as an argument. Do not put the brief inside a PowerShell double-quoted string. Write `brief.md` as UTF-8.
@@ -58,7 +58,7 @@ Paths, commands, and exclusions.
 
 Name paths. Do not paste the repo. `spawn.sh` appends the `report.md` path. The child writes that file before it exits. The first line is `VERDICT` followed by the result.
 
-Grok cannot be relied on to read the temp run directory. `spawn.sh` copies the prompt into the project for that launch and deletes the copy on exit.
+Grok cannot be relied on to read the temp run directory. `spawn.sh` copies the prompt into the project for that launch and deletes the copy on exit. Muse's sandbox cannot write outside the project, so it writes its report to a per-run `.harness-subagent-report-<uuid>.md` in the project and `spawn.sh` copies it to `report.md` in the run directory, then deletes it.
 
 ## When the child hits a limit
 
@@ -78,6 +78,7 @@ Grok cannot be relied on to read the temp run directory. `spawn.sh` copies the p
 | grok | `grok models` must say logged in | `grok update` |
 | agy | no login command | `agy update` |
 | cursor-agent | `cursor-agent status` | `cursor-agent update` |
+| muse | no login command | none; the launcher updates itself |
 
 ## Capture
 
