@@ -69,6 +69,16 @@ done
 [[ -d "$RUN" ]] || die "run dir not found: $RUN"
 PROJECT="$(cd "$PROJECT" && pwd -P)"
 RUN="$(cd "$RUN" && pwd -P)"
+# Git Bash prints %TEMP% as /tmp and drives as /c. MSYS rewrites such paths only
+# when they are a whole argv entry, never inside prompt text, and a native Windows
+# CLI reads /tmp/... as <current drive>:\tmp\... (2026-10-05: codex wrote D:\tmp
+# while capture read %TEMP%). Use the mixed form C:/... everywhere: Git Bash,
+# Windows CLIs, and the prompt resolve it to the same directory. No cygpath (Linux,
+# macOS, WSL) keeps the POSIX path, which is what those CLIs read.
+if command -v cygpath >/dev/null 2>&1; then
+  PROJECT="$(cygpath -m "$PROJECT")"
+  RUN="$(cygpath -m "$RUN")"
+fi
 BRIEF="$RUN/brief.md"
 [[ -s "$BRIEF" ]] || die "brief.md missing or empty: $BRIEF"
 

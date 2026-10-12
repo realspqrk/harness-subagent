@@ -117,13 +117,26 @@ cat >/dev/null
 printf '%s\n' "$STUB_OUT"
 SH
 # codex stub: emits JSONL with a thread id; writes the answer to the -o file.
+# STUB_NATIVE_REPORT=1 acts like a native Windows CLI instead: it reads the
+# report path from the prompt text (stdin, so MSYS never translates it), resolves
+# it with $STUB_PYTHON, writes report.md only into an existing directory, and
+# answers with no VERDICT. Codex in PowerShell resolved /tmp/... to D:\tmp\...
 cat >"$STUBS/codex" <<'SH'
 #!/usr/bin/env bash
 o=""
 while [[ $# -gt 0 ]]; do [[ "$1" == -o ]] && o="$2"; shift; done
-cat >/dev/null
+prompt="$(cat)"
 printf '%s\n' '{"type":"thread.started","thread_id":"0b7e7c6e-1f2a-4c3d-9e8f-123456789abc"}' '{"type":"turn.completed"}'
-printf 'VERDICT — CODEX_OK\n' >"$o"
+if [[ -n "${STUB_NATIVE_REPORT-}" ]]; then
+  sed -n 's/^Write report\.md to \(.*\) before you exit\..*/\1/p' <<<"$prompt" | tail -n 1 |
+    "$STUB_PYTHON" -c 'import os, sys
+p = os.path.abspath(sys.stdin.read().strip())
+if os.path.isdir(os.path.dirname(p)):
+    open(p, "w").write("VERDICT NATIVE_REPORT\n")'
+  printf 'Report written.\n' >"$o"
+else
+  printf 'VERDICT — CODEX_OK\n' >"$o"
+fi
 SH
 chmod +x "$STUBS/claude" "$STUBS/codex"
 
@@ -159,6 +172,27 @@ if [[ "$ec" -eq 0 && "$(cat "$run/capture-status.txt")" == ok && "$(tr -d '\r\n'
   ok "capture: codex thread id persisted from JSONL"
 else
   fail_msg "capture codex (exit=$ec status=$(cat "$run/capture-status.txt" 2>/dev/null) err=$err diag=$(cat "$run/capture-errors.log" 2>/dev/null))"
+fi
+
+# The worker and capture must agree on one run dir. Git Bash shows %TEMP% as
+# /tmp; a native Windows CLI reads /tmp/... in the prompt as <drive>:\tmp\...
+new_run
+run_cmd "$BASH_BIN" "$SPAWN" --model Sonnet --project "$ROOT" --run "$run" --dry-run
+named="$(sed -n 's/^Write report\.md to \(.*\)\/report\.md before you exit\..*/\1/p' "$run/prompt.md" | tail -n 1)"
+want="$(cd "$run" && pwd -P)"
+if has_bin cygpath; then want="$(cygpath -m "$want")"; fi
+if [[ "$ec" -eq 0 && -n "$named" && "$named" == "$want" && "$out" == *"--add-dir $named "* && "$out" == *"$named"'\ before'* ]]; then
+  ok "prompt, claude hint and --add-dir name one native run dir"
+else
+  fail_msg "run dir in prompt (named=$named want=$want out=$out err=$err)"
+fi
+
+new_run
+run_cmd env PATH="$STUBS:$PATH" STUB_NATIVE_REPORT=1 STUB_PYTHON="$PYTHON" "$BASH_BIN" "$SPAWN" --model Astra --project "$ROOT" --run "$run"
+if [[ "$ec" -eq 0 && "$(cat "$run/capture-status.txt")" == ok-report && "$(head -n 1 "$run/last.md" | tr -d '\r')" == "VERDICT NATIVE_REPORT" ]]; then
+  ok "capture: a native CLI writes report.md where capture reads it"
+else
+  fail_msg "native report path (exit=$ec status=$(cat "$run/capture-status.txt" 2>/dev/null) last=$(head -c 200 "$run/last.md" 2>/dev/null) prompt=$(tail -n 1 "$run/prompt.md" 2>/dev/null))"
 fi
 
 # --- health (stub CLIs; POSIX Python only, Windows Python cannot exec bash stubs) ---
