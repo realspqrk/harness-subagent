@@ -286,6 +286,10 @@ Rate limited. Try again in 1h 30m.|2026-09-22T12:00:00|wait 5415|relative compou
 Weekly limit reached, resets in 3 days|2026-09-22T12:00:00|stop|relative reset beyond 24h stops
 Insufficient credits. Try again at 2026-09-22T12:20:00.|2026-09-22T12:00:00|stop|credit block stops despite a reset time
 Spending limit reached. Retry-After: 30|2026-09-22T12:00:00|stop|spend cap stops despite Retry-After
+Exhausted paid quota. Retry-After: 30|2026-09-22T12:00:00|stop|paid quota stops despite Retry-After
+Rate limited. Try again in 1h30m.|2026-09-22T12:00:00|wait 5415|relative compact reset waits
+Rate limited. Try again in 20 minutes and 1 week.|2026-09-22T12:00:00|stop|relative reset with an unknown unit stops
+Limit hit, resets in a moment. Retry-After: 30|2026-09-22T12:00:00|wait 45|vague relative hint defers to Retry-After
 EOF
 
 finish

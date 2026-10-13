@@ -9,7 +9,7 @@
         "Resolves Astra to gpt-6-astra",
         "Keeps Astra; does not swap in the task table's pick",
         "Takes the debugging row's codex effort: --effort high",
-        "Passes an explicit --effort (Astra starts at low per the table, unless the user named one)"
+        "Spawns exactly one CLI"
       ]
     },
     {
@@ -63,7 +63,7 @@
     },
     {
       "id": 7,
-      "prompt": "Use Muse to implement the change in docs/plan.md. You are Codex.",
+      "prompt": "Use Muse Code to implement the change in docs/plan.md. You are Codex.",
       "expected_output": "Named CLI selects the muse column: Spark at medium. Never Grok, never Wonder Full.",
       "expectations": [
         "Spawns muse with --model Spark --effort medium",
