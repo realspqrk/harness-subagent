@@ -113,20 +113,6 @@
           "input_usd_per_mtok": 0.2,
           "output_usd_per_mtok": 1.2,
           "efforts": ["low", "medium", "high", "xhigh", "max"]
-        },
-        {
-          "id": "gpt-5.5",
-          "say": ["gpt-5.5"],
-          "input_usd_per_mtok": 5,
-          "output_usd_per_mtok": 30,
-          "efforts": ["low", "medium", "high", "xhigh"]
-        },
-        {
-          "id": "gpt-5.4",
-          "say": ["gpt-5.4"],
-          "input_usd_per_mtok": 2.5,
-          "output_usd_per_mtok": 15,
-          "efforts": ["low", "medium", "high", "xhigh"]
         }
       ]
     },
@@ -189,6 +175,13 @@
       "auth": [],
       "update": [],
       "models": [
+        {
+          "id": "muse-wonder-full-1.0",
+          "say": ["muse wonder full", "wonder full"],
+          "input_usd_per_mtok": null,
+          "output_usd_per_mtok": null,
+          "efforts": ["minimal", "low", "medium", "high", "xhigh", "max", "ultra"]
+        },
         {
           "id": "muse-wonder-1.0",
           "say": ["muse wonder", "wonder", "muse"],

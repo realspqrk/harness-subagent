@@ -4,20 +4,23 @@
     {
       "id": 1,
       "prompt": "Use Astra to investigate the bug in src/pay.ts. I did not name a second CLI.",
-      "expected_output": "One Codex spawn with model gpt-6-astra. The parent judges the report.",
+      "expected_output": "One Codex spawn with model gpt-6-astra at high (debugging row). The parent judges the report.",
       "expectations": [
         "Resolves Astra to gpt-6-astra",
-        "Does not invent a role or a job-to-CLI table",
+        "Keeps Astra; does not swap in the task table's pick",
+        "Takes the debugging row's codex effort: --effort high",
         "Spawns exactly one CLI"
       ]
     },
     {
       "id": 2,
-      "prompt": "Delegate this task. I did not name a CLI or a model.",
-      "expected_output": "Asks once which CLI and model. Does not launch.",
+      "prompt": "Delegate this task: implement the CSV export described in docs/export.md. I did not name a CLI, model, or effort. You are Claude Code.",
+      "expected_output": "Picks the 'Implementation from a clear brief' row, skips its own vendor, spawns codex with Sol at medium after one announcing line. Does not ask.",
       "expectations": [
-        "Asks the user to name a CLI or model",
-        "Does not spawn claude, codex, and grok together"
+        "Does not ask which CLI or model",
+        "Spawns codex --model Sol --effort medium",
+        "States the row, CLI, model, and effort in one line",
+        "Spawns exactly one CLI"
       ]
     },
     {
@@ -36,6 +39,44 @@
       "expectations": [
         "Does not switch CLI or model",
         "Does not invent a wait time"
+      ]
+    },
+    {
+      "id": 5,
+      "prompt": "Get a second opinion on the diff in this branch. Codex (GPT-6.1 Sol) wrote it. You are Claude Code. Codex is logged out.",
+      "expected_output": "Review row. Skips Anthropic (host) and OpenAI (author); takes grok Grok 4.7 at high.",
+      "expectations": [
+        "Does not spawn codex",
+        "Does not spawn claude",
+        "Spawns grok with Grok 4.7 and --effort high"
+      ]
+    },
+    {
+      "id": 6,
+      "prompt": "A debugging spawn with claude Sonnet at high had full context, ran the tests, and still named the wrong root cause. No model was named. Retry it.",
+      "expected_output": "Diagnoses a reasoning shortfall, moves one model up within the vendor (Sonnet to Opus), keeps effort high, and never auto-selects max, ultra, Fable, or Wonder Full.",
+      "expectations": [
+        "Changes one setting only",
+        "Does not choose max, ultra, Fable, or Wonder Full",
+        "Stops after two retries in total"
+      ]
+    },
+    {
+      "id": 7,
+      "prompt": "Use Muse Code to implement the change in docs/plan.md. You are Codex.",
+      "expected_output": "Named CLI selects the muse column: Spark at medium. Never Grok, never Wonder Full.",
+      "expectations": [
+        "Spawns muse with --model Spark --effort medium",
+        "Does not ask"
+      ]
+    },
+    {
+      "id": 8,
+      "prompt": "Review this diff with Sonnet at ultra. You are Codex.",
+      "expected_output": "Sonnet does not accept ultra. Stops and tells the user instead of launching.",
+      "expectations": [
+        "Does not spawn",
+        "Names the efforts Sonnet accepts"
       ]
     }
   ]

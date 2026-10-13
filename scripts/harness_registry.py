@@ -129,8 +129,47 @@ def parse_clock(hour, minute, ampm, dow, now):
     return target
 
 
+CREDIT_BLOCK = re.compile(
+    r"(?i)((insufficient|exhausted)[\s_:=-]+credits)"
+    r"|(credits[\s_:=-]+((are|have been)\s+)?(insufficient|exhausted))"
+    r"|(spend(ing)?[\s_-]+(limit|cap)[\s:=-]+((has been|is)\s+)?(reached|exceeded|exhausted))"
+    r"|((exhausted|exceeded)[\s_:=-]+paid\s+quota)|(paid\s+quota[\s_:=-]+((has been|is)\s+)?(exhausted|exceeded))"
+)
+UNIT_SECONDS = {"s": 1, "m": 60, "h": 3600, "d": 86400}
+UNIT = r"(\d+)[ \t]*(seconds?|secs?|minutes?|mins?|hours?|hrs?|days?|s|m|h|d)(?![a-z])"
+RELATIVE = re.compile(r"(?i)(?:resets|try again|retry)\s+in\s+")
+# Separators stay on one line, so a following log line such as "429 Too Many Requests" is not read as a unit.
+PART = re.compile(r"(?i)[ \t,]*(?:and[ \t]+)?" + UNIT)
+UNKNOWN_PART = re.compile(r"(?i)[ \t,]*(?:and[ \t]+)?\d+[ \t]*[a-z]")
+
+
+def relative_seconds(text, pos):
+    # Sum "1h30m", "2 hours 5 minutes", "20 minutes and 10 seconds". A trailing unit we do not know makes the whole hint unusable.
+    total, found = 0, False
+    while True:
+        part = PART.match(text, pos)
+        if not part:
+            break
+        total += int(part.group(1)) * UNIT_SECONDS[part.group(2).casefold()[0]]
+        found, pos = True, part.end()
+    if not found:
+        return 0
+    if UNKNOWN_PART.match(text, pos):
+        return None
+    return total
+
+
 def limit_decision(text, now):
+    # A credit, spend, or paid-quota block never resets on its own; a reset hint in it is not a reason to wait.
+    if CREDIT_BLOCK.search(text):
+        return "stop"
     deltas = []
+    for match in RELATIVE.finditer(text):
+        seconds = relative_seconds(text, match.end())
+        if seconds is None:
+            return "stop"
+        if seconds:
+            deltas.append(float(seconds))
     for match in re.finditer(r"Retry-After:\s*(\d+)", text, re.I):
         deltas.append(float(match.group(1)))
     for match in re.finditer(

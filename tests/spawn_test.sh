@@ -28,6 +28,7 @@ Haiku|claude claude-haiku-5-5
 Grok 4.7|grok grok-4.7
 Muse|muse muse-wonder-1.0
 Wonder|muse muse-wonder-1.0
+Wonder Full|muse muse-wonder-full-1.0
 Spark|muse muse-spark-1.3
 Spark 1.2|muse muse-spark-1.2
 EOF
@@ -280,6 +281,19 @@ Try again at 2026-09-22T14:00:00|2026-09-22T12:00:00|wait 7215|absolute reset wi
 Try again at 2026-09-25T12:00:00|2026-09-22T12:00:00|stop|absolute reset beyond 24h stops
 You've hit your usage limit. Try again later.|2026-09-22T12:00:00|stop|no reset time stops
 Retry-After: 30|2026-09-22T12:00:00|wait 45|Retry-After waits with the buffer
+You have hit your session limit · resets in 20 minutes|2026-09-22T12:00:00|wait 1215|relative reset within 24h waits
+Rate limited. Try again in 1h 30m.|2026-09-22T12:00:00|wait 5415|relative compound reset waits
+Weekly limit reached, resets in 3 days|2026-09-22T12:00:00|stop|relative reset beyond 24h stops
+Insufficient credits. Try again at 2026-09-22T12:20:00.|2026-09-22T12:00:00|stop|credit block stops despite a reset time
+Spending limit reached. Retry-After: 30|2026-09-22T12:00:00|stop|spend cap stops despite Retry-After
+Exhausted paid quota. Retry-After: 30|2026-09-22T12:00:00|stop|paid quota stops despite Retry-After
+Rate limited. Try again in 1h30m.|2026-09-22T12:00:00|wait 5415|relative compact reset waits
+Rate limited. Try again in 20 minutes and 1 week.|2026-09-22T12:00:00|stop|relative reset with an unknown unit stops
+Limit hit, resets in a moment. Retry-After: 30|2026-09-22T12:00:00|wait 45|vague relative hint defers to Retry-After
 EOF
+got="$(printf 'Rate limited. Try again in 20 minutes
+429 Too Many Requests
+' | "$PYTHON" "$REG" limit --now 2026-09-22T12:00:00)"
+if [[ "$got" == "wait 1215" ]]; then ok "limit: next log line is not a duration unit"; else fail_msg "limit: multiline got '$got', want 'wait 1215'"; fi
 
 finish
