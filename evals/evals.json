@@ -4,11 +4,11 @@
     {
       "id": 1,
       "prompt": "Use Astra to investigate the bug in src/pay.ts. I did not name a second CLI.",
-      "expected_output": "One Codex spawn with model gpt-6-astra. The parent judges the report.",
+      "expected_output": "One Codex spawn with model gpt-6-astra at high (debugging row). The parent judges the report.",
       "expectations": [
         "Resolves Astra to gpt-6-astra",
         "Keeps Astra; does not swap in the task table's pick",
-        "Spawns exactly one CLI",
+        "Takes the debugging row's codex effort: --effort high",
         "Passes an explicit --effort (Astra starts at low per the table, unless the user named one)"
       ]
     },
@@ -59,6 +59,24 @@
         "Changes one setting only",
         "Does not choose max, ultra, Fable, or Wonder Full",
         "Stops after two retries in total"
+      ]
+    },
+    {
+      "id": 7,
+      "prompt": "Use Muse to implement the change in docs/plan.md. You are Codex.",
+      "expected_output": "Named CLI selects the muse column: Spark at medium. Never Grok, never Wonder Full.",
+      "expectations": [
+        "Spawns muse with --model Spark --effort medium",
+        "Does not ask"
+      ]
+    },
+    {
+      "id": 8,
+      "prompt": "Review this diff with Sonnet at ultra. You are Codex.",
+      "expected_output": "Sonnet does not accept ultra. Stops and tells the user instead of launching.",
+      "expectations": [
+        "Does not spawn",
+        "Names the efforts Sonnet accepts"
       ]
     }
   ]

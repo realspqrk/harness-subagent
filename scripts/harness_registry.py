@@ -129,8 +129,28 @@ def parse_clock(hour, minute, ampm, dow, now):
     return target
 
 
+CREDIT_BLOCK = re.compile(
+    r"(?i)((insufficient|exhausted)[\s_:=-]+credits)"
+    r"|(credits[\s_:=-]+((are|have been)\s+)?(insufficient|exhausted))"
+    r"|(spend(ing)?[\s_-]+(limit|cap)[\s:=-]+((has been|is)\s+)?(reached|exceeded|exhausted))"
+)
+UNIT_SECONDS = {"s": 1, "m": 60, "h": 3600, "d": 86400}
+RELATIVE = re.compile(
+    r"(?i)(?:resets|try again|retry)\s+in\s+"
+    r"((?:\d+\s*(?:seconds?|secs?|s|minutes?|mins?|m|hours?|hrs?|h|days?|d)\b[\s,]*(?:and\s+)?)+)"
+)
+
+
 def limit_decision(text, now):
+    # A credit or spend block never resets on its own; a reset hint in it is not a reason to wait.
+    if CREDIT_BLOCK.search(text):
+        return "stop"
     deltas = []
+    for match in RELATIVE.finditer(text):
+        total = 0
+        for amount, unit in re.findall(r"(?i)(\d+)\s*([a-z]+)", match.group(1)):
+            total += int(amount) * UNIT_SECONDS[unit.casefold()[0]]
+        deltas.append(float(total))
     for match in re.finditer(r"Retry-After:\s*(\d+)", text, re.I):
         deltas.append(float(match.group(1)))
     for match in re.finditer(

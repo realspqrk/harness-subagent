@@ -21,12 +21,12 @@ metadata:
 
 You are the parent. A child CLI does one bounded task and returns a report. You judge the report. The child is not an oracle.
 
-A CLI, model, or effort the user named wins. [When none is named](#when-none-is-named) fills only what is missing. No personas.
+A CLI, model, or effort the user named wins, for the first spawn and every retry. [When none is named](#when-none-is-named) fills only what is missing. No personas.
 
 ## Delegate
 
-1. Take the CLI, model, and effort the user named. Spoken names are in [references/models.md](references/models.md). Fill the rest from [When none is named](#when-none-is-named). Do not ask. Cursor, cursor-agent, and Grok Bot are the `cursor` family. Grok Build is `grok`. Claude Code is `claude`. Codex is `codex`. Antigravity is `agy`. Muse Code is `muse`.
-2. Always pass `--effort`. CLI defaults differ from API defaults and change between releases. Prices are per token. Higher effort spends more tokens at the same rate.
+1. Take the CLI, model, and effort the user named. Spoken names are in [references/models.md](references/models.md). Fill each blank from [When none is named](#when-none-is-named) and do not ask, except where that section says to stop. Cursor, cursor-agent, and Grok Bot are the `cursor` family. Grok Build is `grok`. Claude Code is `claude`. Codex is `codex`. Antigravity is `agy`. Muse Code is `muse`.
+2. Pass `--effort` to `claude`, `codex`, `grok`, and `muse`. CLI defaults differ from API defaults and change between releases. For `agy` and `cursor`, pass it only when the user named an effort and the model id does not already contain one, such as `gemini-3.8-flash-high`. Prices are per token. Higher effort spends more tokens at the same rate.
 3. Write `brief.md` in a new temp run directory. Use the shape below.
 4. Run `scripts/spawn.sh` in the background. On Windows, invoke Git Bash with the script path as an argument. Do not put the brief inside a PowerShell double-quoted string. Write `brief.md` as UTF-8.
 5. Wait until that process exits. Read `report.md` or `last.md`, plus `capture-status.txt`, plus the exit code.
@@ -42,36 +42,39 @@ A child must not delegate. `spawn.sh` sets `HARNESS_SUBAGENT_RUN` and refuses a 
 
 ## When none is named
 
-1. Put the task in one row below.
-2. Take the first column whose model vendor is not yours. For a review, a refutation, or a second opinion, also skip the vendor that wrote the work. The same vendor through another CLI is not a second opinion. Antigravity and Cursor serve several vendors, so they are not in the table.
-3. Skip a CLI that is missing or logged out. Run `scripts/health.sh` once per session if you do not know.
-4. A named model fixes its CLI. A named CLI takes that CLI's column.
-5. Say one line before you spawn: task row, CLI, model, effort. Do not wait for an answer.
+1. Put the task in the row it fits best. If it spans two rows, use the row for the step you delegate.
+2. Apply what the user named. A named model selects its CLI and replaces the cell's model. A named CLI selects its column. A named effort replaces the cell's effort. If the model does not accept that effort (the Efforts column in [references/models.md](references/models.md)), stop and tell the user.
+3. With no CLI named, read the columns left to right. Skip the vendor of the model you are running on. For a review, a refutation, or a second opinion, also skip the vendor that produced the work, when you know it. The same vendor through another CLI is not a second opinion. If you do not know your own vendor, skip nothing for it.
+4. Skip a CLI whose `scripts/health.sh` row is `missing`, `broken`, or `not-logged-in`. Keep `login-unknown`. Read the rows, not the exit code. Run it once per session if you do not know.
+5. If no column is left, stop and tell the user why.
+6. Say one line before you spawn: task row, CLI, model, effort. Do not wait for an answer.
 
-| Task | `codex` | `claude` | `grok` or `muse` |
-|---|---|---|---|
-| Lookup, extraction, summary, triage | Luna, high | Haiku, medium | Grok 4.7, low |
-| Implementation from a clear brief | Sol, medium | Sonnet, medium | Grok 4.7, medium |
-| Debugging, root cause | Sol, high | Sonnet, high | Grok 4.7, high |
-| Code review, refuting a plan, second opinion | Sol, high | Sonnet, high | Grok 4.7, high |
-| Architecture, ambiguous design | Astra, low | Opus, high | Wonder, high |
-| UI build | Sol, medium | Sonnet, medium | Grok 4.7, medium |
-| Long autonomous run with clear acceptance | Sol, high | Sonnet, high | Spark, high |
-| Writing, docs, copy | Sol, low | Sonnet, medium | Grok 4.7, medium |
+| Task | `codex` | `claude` | `grok` | `muse` |
+|---|---|---|---|---|
+| Lookup, extraction, summary, triage | Luna, high | Haiku, medium | Grok 4.7, low | Spark, low |
+| Implementation from a clear brief | Sol, medium | Sonnet, medium | Grok 4.7, medium | Spark, medium |
+| Debugging, root cause | Sol, high | Sonnet, high | Grok 4.7, high | Spark, high |
+| Code review, refuting a plan, second opinion | Sol, high | Sonnet, high | Grok 4.7, high | Spark, high |
+| Architecture, ambiguous design | Astra, low | Opus, high | Grok 4.7, high | Wonder, high |
+| UI build or visual check | Sol, medium | Sonnet, medium | Grok 4.7, medium | Spark, medium |
+| Long autonomous run with clear acceptance | Sol, high | Sonnet, high | Grok 4.7, high | Spark, high |
+| Writing, docs, copy | Sol, low | Sonnet, medium | Grok 4.7, medium | Spark, medium |
 
-The table starts at each vendor's starting effort for that kind of work, from the vendor guidance cited in [references/models.md](references/models.md). Effort names are calibrated per model, so `high` on one model is not `high` on another. Benchmark rows there are evidence, not a ranking.
+Each cell starts at the vendor's own starting effort for that kind of work, from the guidance cited in [references/models.md](references/models.md). Effort names are calibrated per model, so `high` on one model is not `high` on another. Benchmark rows there are evidence, not a ranking.
 
-Do not choose these unless the user names them: `max`, `ultra`, Fable (under `claude -p` it bills usage credits without asking), Wonder Full (Power or Maximum Muse plan only), Grok 4.7 Fast (twice the price for speed), and any id the registry does not list.
+Antigravity and Cursor serve several vendors, so they have no column. If the user names one of them without a model, list its models (`agy models`, `cursor-agent --list-models`) and ask once.
+
+Do not choose `max`, `ultra`, Fable, Wonder Full, Grok 4.7 Fast, or an id that `scripts/registry.json` does not list, unless the user names it. Under `claude -p`, Fable bills usage credits without asking. Wonder Full runs only on the Muse Power Usage or Maximum Usage plan. Grok 4.7 Fast costs twice the token price of Grok 4.7.
 
 ### When the result falls short
 
 Exit 0 is not success. Judge the report against "Done when". Then find the cause before you change anything.
 
-- Missing context, tools, or permission. Fix the brief. Keep the model and effort.
+- Missing context, tools, or permission. Fix the brief. Keep the model and effort. This retry may resume the same session with `--resume-id`.
 - The child skipped files, tests, or checks. Raise effort one step, at most to `xhigh`.
 - The child had the context and tried, and the reasoning was still wrong. Move one model up within the vendor: Luna to Sol to Astra, Haiku to Sonnet to Opus, Spark to Wonder.
 
-Change one setting per retry. Stop after two retries and tell the user what failed. A usage limit is not a quality failure; follow [When the child hits a limit](#when-the-child-hits-a-limit).
+A retry that changes model or effort is a fresh spawn. `spawn.sh` refuses `--resume-id` with a different model or effort. Put the failed attempt's evidence in the new brief. Change one setting per retry, and only a setting the user did not name. Stop and tell the user what failed when the next step would change a named setting, when there is no next step (Astra, Opus, Wonder, Grok 4.7, or `xhigh`), or after two retries. A usage limit is not a quality failure; follow [When the child hits a limit](#when-the-child-hits-a-limit).
 
 ## Brief
 
@@ -103,7 +106,7 @@ Grok cannot be relied on to read the temp run directory. `spawn.sh` copies the p
 
 ## Health
 
-`scripts/health.sh` prints one row per CLI. Columns are name, version, login, update. `--update` runs each vendor update command. Exit 0 when every installed CLI with a login check is logged in. A missing CLI is a failed row. `broken` means the binary is on PATH but its version check fails. A failed login check is retried once, because grok reports logged-out on the first call after token expiry while it refreshes silently.
+`scripts/health.sh` prints one row per CLI. Columns are name, version, login, update. `--update` runs each vendor update command. Exit 0 only when every CLI is present and every CLI with a login check is logged in, so a CLI you never use makes it 1. `broken` means the binary is on PATH but its version check fails. A failed login check is retried once, because grok reports logged-out on the first call after token expiry while it refreshes silently.
 
 | CLI | Login check | Update |
 |---|---|---|

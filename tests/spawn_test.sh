@@ -281,6 +281,11 @@ Try again at 2026-09-22T14:00:00|2026-09-22T12:00:00|wait 7215|absolute reset wi
 Try again at 2026-09-25T12:00:00|2026-09-22T12:00:00|stop|absolute reset beyond 24h stops
 You've hit your usage limit. Try again later.|2026-09-22T12:00:00|stop|no reset time stops
 Retry-After: 30|2026-09-22T12:00:00|wait 45|Retry-After waits with the buffer
+You have hit your session limit · resets in 20 minutes|2026-09-22T12:00:00|wait 1215|relative reset within 24h waits
+Rate limited. Try again in 1h 30m.|2026-09-22T12:00:00|wait 5415|relative compound reset waits
+Weekly limit reached, resets in 3 days|2026-09-22T12:00:00|stop|relative reset beyond 24h stops
+Insufficient credits. Try again at 2026-09-22T12:20:00.|2026-09-22T12:00:00|stop|credit block stops despite a reset time
+Spending limit reached. Retry-After: 30|2026-09-22T12:00:00|stop|spend cap stops despite Retry-After
 EOF
 
 finish
