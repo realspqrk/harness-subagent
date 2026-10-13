@@ -136,10 +136,11 @@ CREDIT_BLOCK = re.compile(
     r"|((exhausted|exceeded)[\s_:=-]+paid\s+quota)|(paid\s+quota[\s_:=-]+((has been|is)\s+)?(exhausted|exceeded))"
 )
 UNIT_SECONDS = {"s": 1, "m": 60, "h": 3600, "d": 86400}
-UNIT = r"(\d+)\s*(seconds?|secs?|minutes?|mins?|hours?|hrs?|days?|s|m|h|d)(?![a-z])"
+UNIT = r"(\d+)[ 	]*(seconds?|secs?|minutes?|mins?|hours?|hrs?|days?|s|m|h|d)(?![a-z])"
 RELATIVE = re.compile(r"(?i)(?:resets|try again|retry)\s+in\s+")
-PART = re.compile(r"(?i)[\s,]*(?:and\s+)?" + UNIT)
-UNKNOWN_PART = re.compile(r"(?i)[\s,]*(?:and\s+)?\d+\s*[a-z]")
+# Separators stay on one line, so a following log line such as "429 Too Many Requests" is not read as a unit.
+PART = re.compile(r"(?i)[ 	,]*(?:and[ 	]+)?" + UNIT)
+UNKNOWN_PART = re.compile(r"(?i)[ 	,]*(?:and[ 	]+)?\d+[ 	]*[a-z]")
 
 
 def relative_seconds(text, pos):

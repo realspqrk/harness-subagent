@@ -291,5 +291,9 @@ Rate limited. Try again in 1h30m.|2026-09-22T12:00:00|wait 5415|relative compact
 Rate limited. Try again in 20 minutes and 1 week.|2026-09-22T12:00:00|stop|relative reset with an unknown unit stops
 Limit hit, resets in a moment. Retry-After: 30|2026-09-22T12:00:00|wait 45|vague relative hint defers to Retry-After
 EOF
+got="$(printf 'Rate limited. Try again in 20 minutes
+429 Too Many Requests
+' | "$PYTHON" "$REG" limit --now 2026-09-22T12:00:00)"
+if [[ "$got" == "wait 1215" ]]; then ok "limit: next log line is not a duration unit"; else fail_msg "limit: multiline got '$got', want 'wait 1215'"; fi
 
 finish
