@@ -110,6 +110,7 @@ live_one codex gpt-6.1-sol
 live_one grok grok-4.7
 live_one agy gemini-3.8-flash
 live_one muse muse-wonder-1.0
+live_one muse muse-wonder-full-1.0
 live_write muse muse-spark-1.3
 
 finish

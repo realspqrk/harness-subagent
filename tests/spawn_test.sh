@@ -28,6 +28,7 @@ Haiku|claude claude-haiku-5-5
 Grok 4.7|grok grok-4.7
 Muse|muse muse-wonder-1.0
 Wonder|muse muse-wonder-1.0
+Wonder Full|muse muse-wonder-full-1.0
 Spark|muse muse-spark-1.3
 Spark 1.2|muse muse-spark-1.2
 EOF

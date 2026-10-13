@@ -18,7 +18,7 @@ That is this skill. You stay in the agent you already use. It becomes the parent
 
 The child is not an oracle. A model that reviews its own work repeats its own blind spots. A model trained by a different vendor may not. That value is lost if the parent forwards the answer without judging it.
 
-Supported child CLIs: Claude Code (`claude`), Codex (`codex`), Grok Build (`grok`), Antigravity (`agy`), the Cursor CLI (`cursor-agent`), and Meta's Muse Code (`muse`). The host picks the CLI, the model, and the effort. The skill does not rank jobs or assign personas.
+Supported child CLIs: Claude Code (`claude`), Codex (`codex`), Grok Build (`grok`), Antigravity (`agy`), the Cursor CLI (`cursor-agent`), and Meta's Muse Code (`muse`). Name the CLI, model, or effort and that wins. Leave any of them out and the parent fills the gap from a short task table that prefers a different vendor than itself. No personas.
 
 This is a [Claude skill](https://code.claude.com/docs/en/skills) in the [Agent Skills](https://agentskills.io) format. Any agent that can run a shell command in the background can use it.
 
@@ -70,7 +70,7 @@ The exit code is 0 only when every CLI is present, every CLI with a login check 
 
 The protocol is [SKILL.md](SKILL.md). This is the short version.
 
-1. **You name the CLI and the model.** Spoken names such as Opus 5.5, Fable, Sonnet 5.5, Astra, Sol, Terra, Luna, Grok 4.7, Muse Wonder, and Spark resolve to exact ids in [references/models.md](references/models.md), which also lists prices and effort levels. For Antigravity and Cursor, pass the id that CLI accepts. If you name neither CLI nor model, the parent asks once.
+1. **You name the CLI and the model, or let the parent pick.** Spoken names such as Opus 5.5, Fable, Sonnet 5.5, Astra, Sol, Terra, Luna, Grok 4.7, Muse Wonder, Wonder Full, and Spark resolve to exact ids in [references/models.md](references/models.md), which also lists prices and effort levels. For Antigravity and Cursor, pass the id that CLI accepts. If you name neither, the parent picks from the task table in [SKILL.md](SKILL.md#when-none-is-named), says what it picked, and spawns. It never picks `max`, Fable, or Wonder Full on its own.
 2. **The parent writes a brief.** It creates `brief.md` in a new temp run directory: one task sentence, where to look, what was already tried, and when it is done. It names paths. It does not paste the repo.
 3. **The parent runs `scripts/spawn.sh` in the background** and waits for it to exit.
 4. **The parent judges the report.** It reads `report.md` (or `last.md`) and `capture-status.txt`, then says what it agrees with, what it does not, and what it will do. A pasted report is not an answer.
@@ -89,6 +89,7 @@ Things you can say:
 - *Ask Grok 4.7 to try to refute the plan in `docs/plan.md`.*
 - *Use harness-subagent: Sol, medium effort. Find out why `tests/api` flakes on CI. Report only, no edits.*
 - *Get Fable 5.1 to review this migration before I merge it.*
+- *Get a second opinion on this plan from another vendor.* (The parent picks the model and effort.)
 
 One job per spawn. "Implement and then review it" is two spawns, or one spawn plus the parent's own review.
 
@@ -165,7 +166,7 @@ This is my setup, not the protocol. The skill does not enforce these model choic
 
 I run pstack `poteto-mode` in the Cursor GUI, locally. I tell the parent: whenever you would spawn a subagent for a medium-to-demanding task, use harness-subagent instead. Use Opus for UI work. Use Codex for visual testing.
 
-Opus is the spoken name for Opus 5.5. Codex is the CLI, so the visual-testing line still needs a model from [references/models.md](references/models.md), such as Sol or Astra. Those picks are mine. They are not a ranking the skill enforces. Put your own in your rule.
+Opus is the spoken name for Opus 5.5. Codex is the CLI, so the visual-testing line still needs a model from [references/models.md](references/models.md), such as Sol or Astra. Those picks are mine. A rule like this overrides the skill's default table. Put your own in your rule.
 
 ## License
 

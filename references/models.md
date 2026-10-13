@@ -1,8 +1,12 @@
 # Models
 
-Spoken names resolve to these ids. Prices are USD per million tokens, standard rate, short context, as published on 2026-09-22, plus Sonnet 5.5 on 2026-09-29, GPT-6.1 Sol on 2026-09-30, and Haiku 5.5 and the Muse models on 2026-10-12. A higher effort does not change the per-token rate. It spends more tokens, and those tokens are billed at the output rate.
+Spoken names resolve to these ids. Prices are USD per million tokens, standard rate, short context, as published on 2026-09-22, plus Sonnet 5.5 on 2026-09-29, GPT-6.1 Sol on 2026-09-30, Haiku 5.5 and the Muse models on 2026-10-12, and Muse Wonder Full on 2026-10-13. A higher effort does not change the per-token rate. It spends more tokens, and those tokens are billed at the output rate.
 
-Pass `--effort` yourself. If you omit it, the CLI uses its own default.
+Pass `--effort` yourself. If you omit it, the CLI uses its own default. When the user named no model or effort, pick from the table in [SKILL.md](../SKILL.md#when-none-is-named) first; this file is the catalog behind it.
+
+The score tables are evidence, not a ranking. Rows mix benchmark versions, harnesses, and efforts. Compare two rows only when model, benchmark version, and harness match. Never average them.
+
+Sections: [Claude Code](#claude-code-claude) · [Codex](#codex-codex) · [Grok Build](#grok-build-grok) · [Muse Code](#muse-code-muse) · [Antigravity and Cursor](#antigravity-agy-and-cursor-cli-cursor)
 
 ## Claude Code (`claude`)
 
@@ -68,10 +72,8 @@ Sources: https://platform.claude.com/docs/en/about-claude/pricing, https://code.
 | GPT-5.6 Sol | `gpt-5.6-sol` | 4 | 20 | low, medium, high, xhigh, max, ultra |
 | Terra, GPT-5.6 Terra | `gpt-5.6-terra` | 2 | 12 | low, medium, high, xhigh, max, ultra |
 | GPT-5.6 Luna | `gpt-5.6-luna` | 0.20 | 1.20 | low, medium, high, xhigh, max |
-| GPT-5.5 | `gpt-5.5` | 5 | 30 | low, medium, high, xhigh |
-| GPT-5.4 | `gpt-5.4` | 2.50 | 15 | low, medium, high, xhigh |
 
-GPT-6.1 Sol shipped 2026-09-29 at the GPT-6 Sol price. The codex-cli 0.159.2 catalog lists it. Saying Sol selects `gpt-6.1-sol`. Saying Luna selects `gpt-6-luna`. GPT-6 Sol, GPT-5.6 Sol, and GPT-5.6 Luna are still served and stay under those versioned names. There is no GPT-6.1 Astra, GPT-6.1 Luna, or GPT-6 Terra as of 2026-09-30, so Terra still selects `gpt-5.6-terra`. GPT-5.4 is retired for ChatGPT sign-in as of 2026-08-31. GPT-5.6 Sol's 4/20 price is promotional at least through 2026-11-21. Prices above are standard short-context rates. Ultra is a product mode that runs parallel agents. It is not a separate per-token price. The API pages for GPT-6 Sol and Luna also list `none` and default to medium. The GPT-6.1 Sol API page lists low through max, without `none`, and defaults to medium. This CLI's catalog does not list `none`. It does list `ultra` for Astra, GPT-6.1 Sol, and GPT-6 Sol. In codex-cli 0.159.2 the catalog default effort is `low` for GPT-6.1 Sol and `medium` for Astra and GPT-6 Sol.
+GPT-6.1 Sol shipped 2026-09-29 at the GPT-6 Sol price. The codex-cli 0.159.2 catalog lists it. Saying Sol selects `gpt-6.1-sol`. Saying Luna selects `gpt-6-luna`. GPT-6 Sol, GPT-5.6 Sol, and GPT-5.6 Luna are still served and stay under those versioned names. There is no GPT-6.1 Astra, GPT-6.1 Luna, or GPT-6 Terra as of 2026-09-30, so Terra still selects `gpt-5.6-terra`. GPT-5.4 left Codex on 2026-08-31 and GPT-5.5 leaves it on 2026-10-14, so neither is listed and `spawn.sh` refuses both. GPT-5.6 Sol's 4/20 price is promotional at least through 2026-11-21. Prices above are standard short-context rates. Ultra is a product mode that runs parallel agents. It is not a separate per-token price. The API pages for GPT-6 Sol and Luna also list `none` and default to medium. The GPT-6.1 Sol API page lists low through max, without `none`, and defaults to medium. This CLI's catalog does not list `none`. It does list `ultra` for Astra, GPT-6.1 Sol, and GPT-6 Sol. In codex-cli 0.162.1 the catalog default effort is `low` for GPT-6.1 Sol and `medium` for Astra, GPT-6 Sol, and Luna. OpenAI's Codex model page says to start Luna at high and Astra at low.
 
 | Effort | What OpenAI says |
 |---|---|
@@ -96,10 +98,8 @@ Published scores. These are not one shared test.
 | GPT-6.1 Sol | AutomationBench | 31.7% | medium |
 | Astra | Terminal-Bench 4.0 | 57.9% | maximum across efforts, winning effort not named |
 | GPT-5.6 Sol | Terminal-Bench 4.0 | 37.3% | maximum across efforts, winning effort not named |
-| GPT-5.5 | Terminal-Bench 2.0 | 82.7% | xhigh |
-| GPT-5.4 | Terminal-Bench 2.0 | 75.1% | xhigh |
 
-Sources: https://developers.openai.com/api/docs/pricing, https://developers.openai.com/api/docs/models/gpt-6-sol, and https://developers.openai.com/api/docs/models/gpt-6-luna (accessed 2026-09-23), and https://developers.openai.com/api/docs/models/gpt-6.1-sol (accessed 2026-09-30). Earlier scores: https://openai.com/index/gpt-6-astra/ and https://openai.com/index/introducing-gpt-5-5/ (accessed 2026-09-22). GPT-6.1 Sol scores: OpenAI Developers posts https://x.com/OpenAIDevs/status/2104993067942219873 and https://x.com/OpenAIDevs/status/2104993086099398854, and Cognition, which maintains FrontierCode, at https://devin.ai/blog/gpt-6-1-sol (accessed 2026-09-30). OpenAI's launch charts plot score against cost without labeling the effort on each point, so no score is read from them. No Luna score is copied here, because its page did not publish one.
+Sources: https://developers.openai.com/api/docs/pricing, https://developers.openai.com/api/docs/models/gpt-6-sol, and https://developers.openai.com/api/docs/models/gpt-6-luna (accessed 2026-09-23), and https://developers.openai.com/api/docs/models/gpt-6.1-sol (accessed 2026-09-30). Retirements and starting efforts: https://learn.chatgpt.com/docs/models (accessed 2026-10-13). Earlier scores: https://openai.com/index/gpt-6-astra/ (accessed 2026-09-22). GPT-6.1 Sol scores: OpenAI Developers posts https://x.com/OpenAIDevs/status/2104993067942219873 and https://x.com/OpenAIDevs/status/2104993086099398854, and Cognition, which maintains FrontierCode, at https://devin.ai/blog/gpt-6-1-sol (accessed 2026-09-30). OpenAI's launch charts plot score against cost without labeling the effort on each point, so no score is read from them. No Luna score is copied here, because its page did not publish one.
 
 ## Grok Build (`grok`)
 
@@ -124,17 +124,20 @@ Source: https://x.ai/news/grok-4-7 (2026-09-21) and https://docs.x.ai/developers
 
 ## Muse Code (`muse`)
 
-Meta's API has one price at every context length, up to 1,048,576 tokens. Reasoning tokens bill as output.
+Meta's API has one price at every context length, up to 1,048,576 tokens. Reasoning tokens bill as output. Muse Wonder Full has no per-token price; it runs only on a Muse Code subscription.
 
 | Say | Id | Input | Output | Efforts |
 |---|---|---:|---:|---|
+| Muse Wonder Full, Wonder Full | `muse-wonder-full-1.0` | - | - | minimal, low, medium, high, xhigh, max, ultra |
 | Muse Wonder, Wonder, Muse | `muse-wonder-1.0` | 4 | 20 | minimal, low, medium, high, xhigh, max, ultra |
 | Spark 1.3, Spark | `muse-spark-1.3` | 1.25 | 4.25 | minimal, low, medium, high, xhigh, max, ultra |
 | Spark 1.2 | `muse-spark-1.2` | 1.25 | 4.25 | minimal, low, medium, high, xhigh, ultra |
 
-Muse Wonder shipped 2026-10-12, in preview. Saying Muse or Wonder selects it. Spark 1.3 shipped 2026-09-02 and is the one Meta recommends for new work. Muse Code 1.4.6 documents Spark 1.2 as its default. Muse Wonder Full is a Muse Code subscription model with no published id. Choosing `max` on Wonder does not select it, so it is not listed. Spark 1.1 runs only on the Model API, not in Muse Code. The `-contributor` ids, priced at 0.10/0.20, let Meta train on your sessions. They are not listed, so `spawn.sh` refuses them.
+Muse Wonder shipped 2026-10-12, in preview. Saying Muse or Wonder selects it. Spark 1.3 shipped 2026-09-02 and is the one Meta recommends for new work. Muse Code 1.4.6 documents Spark 1.2 as its default.
 
-The CLI defaults to `high`. `none` fails on Meta models. On 2026-10-12 the API refused `max` on Spark 1.2 and listed minimal through xhigh. `ultra` is a Muse Code setting, not an API value. It sends the model's highest level, or `xhigh` where the model has no higher one, and it makes Muse Code delegate more.
+Muse Wonder Full shipped 2026-10-12. Meta calls it the higher-capability variant of Wonder, built on a larger base model. It runs only in Muse Code on the Power Usage ($50/month) or Maximum Usage ($200/month) plan, never on the Model API, and choosing `max` on Wonder does not select it. Meta's models page prints no id. Its model page prints `muse-wonder-full-1.0`, and on 2026-10-13 Muse Code 1.4.6 ran that id on Windows and WSL at minimal through max, while an invented id failed with "does not exist or you lack access". On a plan without it, expect that same error. Saying Wonder or Muse still selects `muse-wonder-1.0`, which every plan has. Spark 1.1 runs only on the Model API, not in Muse Code. The `-contributor` ids, priced at 0.10/0.20, let Meta train on your sessions. They are not listed, so `spawn.sh` refuses them.
+
+The CLI defaults to `high`. `none` fails on Meta models. On 2026-10-12 the API refused `max` on Spark 1.2 and listed minimal through xhigh. `ultra` is a Muse Code setting, not an API value. It sends the model's highest level, or `xhigh` where the model has no higher one, and it makes Muse Code delegate more. On 2026-10-13 this account's Muse Code printed `gate ultra_reasoning_effort is closed; using xhigh` for every Muse model.
 
 | Effort | What Meta says |
 |---|---|
@@ -150,8 +153,14 @@ Published scores that name an effort. These are not one shared test.
 
 | Model | Benchmark | Score | Effort on that score |
 |---|---|---:|---|
+| Muse Wonder Full | Terminal-Bench 4.0 (Artificial Analysis run) | 57.1% | max |
 | Muse Wonder | Terminal-Bench 4.0 (Artificial Analysis run) | 52.0% | max |
+| Muse Wonder Full | DeepSWE v1.1 | 79.0% | max |
 | Muse Wonder | DeepSWE v1.1 | 78.8% | max |
+| Muse Wonder Full | SWE-Marathon | 57.5% | xhigh |
+| Muse Wonder | SWE-Marathon | 53.1% | max |
+| Muse Wonder Full | ProgramBench (mini-swe-agent) | 59.0% | max |
+| Muse Wonder | ProgramBench (mini-swe-agent) | 50.0% | max |
 | Spark 1.3 | DeepSWE v1.1 | 75.4% | max, mini-swe-agent harness |
 | Spark 1.2 | DeepSWE v1.1 | 55.0% | xhigh |
 | Spark 1.3 | Terminal-Bench 2.1 | 88.8% | max |
@@ -161,9 +170,9 @@ Published scores that name an effort. These are not one shared test.
 | Spark 1.3 | CursorBench 4.0 | 33.4% | high |
 | Spark 1.3 | CursorBench 4.0 | 29.3% | low |
 
-The Wonder rows are read from Meta's launch scorecard image. Every column on it is labeled `(max)`. No FrontierCode score is published for any Muse model.
+The Wonder and Wonder Full rows are read from Meta's launch scorecard image. Every column on it is labeled `(max)`, except the Wonder Full SWE-Marathon cell, which is labeled `(xhigh)`. Meta says SWE-Marathon's Claude and GPT rows ran in Claude Code and Codex, so that row is not one shared harness. On Meta's card, Opus 5.5 at max scores higher than Wonder Full on Terminal-Bench 4.0 (59.6) and ProgramBench (70.5). No FrontierCode score is published for any Muse model.
 
-Sources: https://dev.meta.ai/docs/models, https://dev.meta.ai/docs/pricing-rate-limits, https://dev.meta.ai/docs/reasoning, https://dev.meta.ai/docs/muse-code/configuration, https://research.meta.ai/blog/muse-wonder, https://research.meta.ai/static/muse-wonder-model-card, https://x.com/AIatMeta/status/2109691150932025836 (scorecard), https://research.meta.ai/static/muse-spark-1-3-multimodal-evaluation-methodology, and https://cursor.com/cursorbench (accessed 2026-10-12).
+Sources: https://dev.meta.ai/docs/models, https://dev.meta.ai/docs/pricing-rate-limits, https://dev.meta.ai/docs/reasoning, https://dev.meta.ai/docs/muse-code/configuration, https://research.meta.ai/blog/muse-wonder, https://research.meta.ai/static/muse-wonder-model-card, https://dev.meta.ai/models/muse-wonder (Wonder Full id and plans, accessed 2026-10-13), https://x.com/AIatMeta/status/2109691150932025836 (scorecard), https://research.meta.ai/static/muse-spark-1-3-multimodal-evaluation-methodology, and https://cursor.com/cursorbench (accessed 2026-10-12).
 
 ## Antigravity (`agy`) and Cursor CLI (`cursor`)
 
