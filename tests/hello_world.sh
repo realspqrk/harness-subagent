@@ -107,6 +107,7 @@ live_one claude claude-sonnet-5-5
 live_write claude claude-haiku-5-5
 live_one codex gpt-6-astra
 live_one codex gpt-6.1-sol
+live_one codex gpt-6.1-terra
 live_one grok grok-4.7
 live_one agy gemini-3.8-flash
 live_one muse muse-wonder-1.0

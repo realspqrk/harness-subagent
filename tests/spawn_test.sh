@@ -17,7 +17,8 @@ Sol|codex gpt-6.1-sol
 GPT-6 Sol|codex gpt-6-sol
 GPT-5.6 Sol|codex gpt-5.6-sol
 Luna|codex gpt-6-luna
-Terra|codex gpt-5.6-terra
+Terra|codex gpt-6.1-terra
+GPT-5.6 Terra|codex gpt-5.6-terra
 Opus|claude claude-opus-5-5
 Opus 5|claude claude-opus-5
 Fable|claude claude-fable-5-1

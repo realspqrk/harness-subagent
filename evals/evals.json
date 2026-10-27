@@ -78,6 +78,17 @@
         "Does not spawn",
         "Names the efforts Sonnet accepts"
       ]
+    },
+    {
+      "id": 9,
+      "prompt": "Delegate this: rewrite the README install section so a first-time user can follow it. I did not name a CLI, model, or effort. You are Claude Code.",
+      "expected_output": "Writing row. Skips Anthropic (host), takes codex with Terra (gpt-6.1-terra) at medium after one announcing line. Does not ask.",
+      "expectations": [
+        "Does not ask which CLI or model",
+        "Spawns codex --model Terra --effort medium",
+        "Does not spawn claude",
+        "Spawns exactly one CLI"
+      ]
     }
   ]
 }
