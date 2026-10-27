@@ -80,6 +80,13 @@
           "efforts": ["low", "medium", "high", "xhigh", "max", "ultra"]
         },
         {
+          "id": "gpt-6.1-terra",
+          "say": ["terra", "gpt-6.1 terra", "gpt-6.1-terra", "6.1 terra"],
+          "input_usd_per_mtok": 1,
+          "output_usd_per_mtok": 5,
+          "efforts": ["low", "medium", "high", "xhigh", "max", "ultra"]
+        },
+        {
           "id": "gpt-6-sol",
           "say": ["gpt-6 sol", "gpt-6-sol"],
           "input_usd_per_mtok": 2,
@@ -102,7 +109,7 @@
         },
         {
           "id": "gpt-5.6-terra",
-          "say": ["terra", "gpt-5.6 terra", "gpt-5.6-terra"],
+          "say": ["gpt-5.6 terra", "gpt-5.6-terra", "5.6 terra"],
           "input_usd_per_mtok": 2,
           "output_usd_per_mtok": 12,
           "efforts": ["low", "medium", "high", "xhigh", "max", "ultra"]

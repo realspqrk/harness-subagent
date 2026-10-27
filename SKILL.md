@@ -5,7 +5,7 @@ description: >
   delegates to a subagent. CLIs are Claude Code, Codex, Grok Build, Antigravity
   (agy), the Cursor CLI (cursor-agent), and Muse Code (muse). Use when the user says
   harness-subagent, asks for another vendor's model or second opinion, or names a
-  CLI or a model such as Astra, Sol, Opus, Opus 5.5, Fable, Sonnet, Sonnet 5.5,
+  CLI or a model such as Astra, Sol, Terra, Opus, Opus 5.5, Fable, Sonnet, Sonnet 5.5,
   Haiku, Grok 4.7, Muse, Wonder, Wonder Full, or Spark. Do not use to install those
   CLIs. Do not use if this session was launched by this skill (the prompt starts
   with YOU ARE THE WORKER, or HARNESS_SUBAGENT_RUN is set). Do that job. Do not
@@ -14,7 +14,7 @@ license: MIT
 compatibility: Requires claude, codex, grok, agy, cursor-agent, and/or muse on PATH. Windows needs Git Bash. Python 3.
 metadata:
   author: realspqrk
-  version: "0.6.0"
+  version: "0.6.1"
 ---
 
 # Harness subagent
@@ -58,7 +58,7 @@ A child must not delegate. `spawn.sh` sets `HARNESS_SUBAGENT_RUN` and refuses a 
 | Architecture, ambiguous design | Astra, low | Opus, high | Grok 4.7, high | Wonder, high |
 | UI build or visual check | Sol, medium | Sonnet, medium | Grok 4.7, medium | Spark, medium |
 | Long autonomous run with clear acceptance | Sol, high | Sonnet, high | Grok 4.7, high | Spark, high |
-| Writing, docs, copy | Sol, low | Sonnet, medium | Grok 4.7, medium | Spark, medium |
+| Writing, docs, copy | Terra, medium | Sonnet, medium | Grok 4.7, medium | Spark, medium |
 
 Each cell starts at the vendor's own starting effort for that kind of work, from the guidance cited in [references/models.md](references/models.md). Effort names are calibrated per model, so `high` on one model is not `high` on another. Benchmark rows there are evidence, not a ranking.
 
@@ -72,7 +72,7 @@ Exit 0 is not success. Judge the report against "Done when". Then find the cause
 
 - Missing context, tools, or permission. Fix the brief. Keep the model and effort. This retry may resume the same session with `--resume-id`.
 - The child skipped files, tests, or checks. Raise effort one step, at most to `xhigh`.
-- The child had the context and tried, and the reasoning was still wrong. Move one model up within the vendor: Luna to Sol to Astra, Haiku to Sonnet to Opus, Spark to Wonder.
+- The child had the context and tried, and the reasoning was still wrong. Move one model up within the vendor: from Luna or Terra to Sol to Astra, Haiku to Sonnet to Opus, Spark to Wonder.
 
 A retry that changes model or effort is a fresh spawn. `spawn.sh` refuses `--resume-id` with a different model or effort. Put the failed attempt's evidence in the new brief. Change one setting per retry, and only a setting the user did not name. Stop and tell the user what failed when the next step would change a named setting, when there is no next step (Astra, Opus, Wonder, Grok 4.7, or `xhigh`), or after two retries. A usage limit is not a quality failure; follow [When the child hits a limit](#when-the-child-hits-a-limit).
 
