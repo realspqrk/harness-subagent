@@ -46,10 +46,10 @@ if has_bin agy; then
   else
     fail_msg "agy --help missing --print (exit=$ec)"
   fi
-  if echo "$out$err" | grep -q -- '--dangerously-skip-permissions'; then
-    ok "agy --help lists --dangerously-skip-permissions"
+  if echo "$out$err" | grep -qE -- '--mode[[:space:]].*\bauto\b' && [[ "$out$err" == *"--sandbox"* && "$out$err" == *"--settings"* ]]; then
+    ok "agy --help lists auto mode, sandbox, and session settings"
   else
-    fail_msg "agy --help missing --dangerously-skip-permissions (exit=$ec)"
+    fail_msg "agy --help missing auto mode, sandbox, or session settings (exit=$ec)"
   fi
 else
   skip "agy not on PATH (parse)"
@@ -109,7 +109,7 @@ live_one codex gpt-6-astra
 live_one codex gpt-6.1-sol
 live_one codex gpt-6.1-terra
 live_one grok grok-4.7
-live_one agy gemini-3.8-flash
+live_write agy gemini-3.8-flash
 live_one muse muse-wonder-1.0
 # Wonder Full needs the Muse Power Usage or Maximum Usage plan.
 [[ -n "${HS_LIVE_WONDER_FULL-}" ]] && live_one muse muse-wonder-full-1.0

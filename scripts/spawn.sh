@@ -250,9 +250,10 @@ case "$BACKEND" in
   agy)
     # Do not pass --add-dir. On 2026-08-31 that made the run dir the workspace
     # and the app was written there instead of --project.
+    # Keep sandboxed commands unattended even when auto mode is unavailable.
     CMD=(agy --output-format stream-json
-      --print-timeout 15m --disable-slash-commands --mode accept-edits
-      --dangerously-skip-permissions --model "$MODEL")
+      --print-timeout 15m --disable-slash-commands --mode auto --sandbox
+      --settings '{"toolPermission":"proceed-in-sandbox"}' --model "$MODEL")
     if [[ -n "$EFFORT" ]]; then CMD+=(--effort "$EFFORT"); fi
     if [[ -n "$RESUME_ID" ]]; then CMD+=(--conversation "$RESUME_ID"); fi
     ;;

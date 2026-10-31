@@ -186,6 +186,8 @@ Sources: https://dev.meta.ai/docs/models, https://dev.meta.ai/docs/pricing-rate-
 
 No fixed model list lives here. Pass the id the CLI accepts.
 
+agy uses `--mode auto --sandbox` with the session setting `toolPermission: proceed-in-sandbox`. If auto mode is unavailable for the account, sandboxed commands can still run unattended; commands needing approval outside the sandbox may be denied headlessly. This requires a working terminal sandbox. See [sandbox permissions](https://antigravity.google/docs/sandbox?tab=cli).
+
 `agy models` lists ids with the effort built in, such as `gemini-3.8-flash-high`. Such an id takes no `--effort`. agy 1.2.13 rejects the pair as a conflict. To choose the effort with `--effort`, pass the base id, such as `gemini-3.8-flash`. The CLI help lists `low`, `medium`, `high`, and `max`, but each model takes only some of them. On 2026-09-29 `gemini-3.8-flash` took `low`, `medium`, and `high`, and `gemini-3.1-pro` took `low` and `high`. agy names the allowed set when you pass another one. Cursor has no separate effort flag. When you pass `--effort`, the spawn command writes it into the model id as `[effort=...]`, which `cursor-agent --help` documents.
 
 List Cursor models with `cursor-agent --list-models`. The binary is `cursor-agent`. On this platform `agent` is often Grok, not Cursor.
