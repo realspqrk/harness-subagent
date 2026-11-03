@@ -2,17 +2,21 @@
 # Delegate one task to a coding-agent CLI. Parents must invoke this file, not copy it.
 # Usage: spawn.sh [--backend claude|codex|grok|agy|cursor|muse] --model NAME \
 #                 --project DIR --run DIR [--effort TOKEN] [--image PATH]...
+#                 [--trust-project]
 set -euo pipefail
 
 usage() {
   cat <<'EOF'
 Usage: spawn.sh [--backend claude|codex|grok|agy|cursor|muse] --model NAME \
                 --project DIR --run DIR [--effort TOKEN] [--image PATH]...
-                [--resume-id UUID] [--limit-retry] [--dry-run] [--help]
+                [--resume-id UUID] [--trust-project] [--limit-retry] [--dry-run] [--help]
 
 --model accepts a spoken name from references/models.md or a CLI model id.
 --backend is optional when that name belongs to one CLI.
 --image attaches a file for codex only; other CLIs refuse it.
+--trust-project lets grok and muse load the project's AGENTS.md, skills and hooks
+(muse: this run only; grok: saved to ~/.grok/trusted_folders.toml). Off by default;
+the parent passes it for its own session workspace. No effect on claude, codex, agy, cursor.
 Requires a non-empty $RUN/brief.md written by the parent.
 Writes $RUN/stdout.md, prefers $RUN/report.md when it contains VERDICT,
 normalizes into $RUN/last.md, and records $RUN/capture-status.txt
@@ -42,6 +46,7 @@ MODEL=""
 EFFORT=""
 RESUME_ID=""
 DRY=0
+TRUST=0
 LIMIT_RETRY=0
 IMAGES=()
 
@@ -54,6 +59,7 @@ while [[ $# -gt 0 ]]; do
     --effort) need_val "$1" "${2-}"; EFFORT="$2"; shift 2 ;;
     --resume-id) need_val "$1" "${2-}"; RESUME_ID="$2"; shift 2 ;;
     --image) need_val "$1" "${2-}"; IMAGES+=("$2"); shift 2 ;;
+    --trust-project) TRUST=1; shift ;;
     --limit-retry) LIMIT_RETRY=1; shift ;;
     --dry-run) DRY=1; shift ;;
     --help|-h) usage; exit 0 ;;
@@ -245,6 +251,8 @@ case "$BACKEND" in
     CMD=(grok --permission-mode auto -m "$MODEL"
       --cwd "$PROJECT" --prompt-file "$PROMPT_FILE" --output-format plain)
     if [[ -n "$EFFORT" ]]; then CMD+=(--effort "$EFFORT"); fi
+    # Grok saves --trust to ~/.grok/trusted_folders.toml; it is not per run.
+    if [[ "$TRUST" -eq 1 ]]; then CMD+=(--trust); fi
     if [[ -n "$RESUME_ID" ]]; then CMD+=(--resume "$RESUME_ID"); else CMD+=(--session-id "$SID"); fi
     ;;
   agy)
@@ -274,11 +282,12 @@ case "$BACKEND" in
       fi
     fi
     # --disable-approval keeps the sandbox; Meta reserves --yolo for disposable
-    # containers. No --trust-workspace: it also runs the repo's .muse hooks.
-    # --session-id both preassigns and resumes headlessly.
+    # containers. --trust-workspace only on request: it also runs the repo's
+    # .muse hooks, outside the sandbox. --session-id preassigns and resumes.
     CMD+=(exec --disable-approval --model "$MODEL"
       --prompt-file "$PROMPT_FILE" --session-id "${RESUME_ID:-$SID}")
     if [[ -n "$EFFORT" ]]; then CMD+=(--effort "$EFFORT"); fi
+    if [[ "$TRUST" -eq 1 ]]; then CMD+=(--trust-workspace); fi
     ;;
 esac
 
@@ -340,7 +349,15 @@ detect_usage_limit() {
 }
 
 # Prefer durable report.md (survives Claude cleanup turns) over final stdout.
+# Windows CLIs may write a UTF-8 BOM, which hides a first-line VERDICT (codex, 2026-11-03).
+strip_bom() {
+  [[ -s "$1" ]] || return 0
+  LC_ALL=C sed $'1s/^\xef\xbb\xbf//' "$1" >"$1.bom.$$" && mv -f "$1.bom.$$" "$1"
+}
+
 finalize_capture() {
+  strip_bom "$REPORT"
+  strip_bom "$STDOUT"
   if has_verdict "$REPORT"; then
     cp "$REPORT" "$LAST"
   elif [[ -s "$STDOUT" ]]; then
@@ -363,6 +380,22 @@ finalize_capture() {
   fi
 }
 
+# An untrusted grok/muse child skips the project's AGENTS.md, skills and hooks,
+# yet still reports (2026-11-02). Flag it below the report; the status stays.
+TRUST_STATE=""   # "", untrusted, or unknown
+warn_untrusted() {
+  if [[ "$BACKEND" == muse ]] && grep -q 'workspace is untrusted' "$ERR" 2>/dev/null; then TRUST_STATE=untrusted; fi
+  local what
+  case "$TRUST_STATE" in
+    untrusted) what="ran with $PROJECT untrusted, so it skipped" ;;
+    unknown) what="could not confirm trust for $PROJECT (grok inspect failed), so it may have skipped" ;;
+    *) return 0 ;;
+  esac
+  printf '\n\nWARNING (spawn.sh): %s %s the project AGENTS.md, skills and hooks. Rerun with --trust-project only if the SKILL.md trust rule covers this project (grok saves the trust).\n' \
+    "$BACKEND" "$what" >>"$LAST"
+  echo "spawn.sh: warning: $BACKEND $what project rules" >&2
+}
+
 if [[ "$DRY" -eq 1 ]]; then
   printf 'cd %q &&' "$PROJECT"
   printf ' %q' "${CMD[@]}"
@@ -377,6 +410,18 @@ if [[ "$DRY" -eq 1 ]]; then
 fi
 
 cd "$PROJECT"
+if [[ "$BACKEND" == grok && "$TRUST" -eq 1 ]]; then
+  echo "spawn.sh: grok --trust saves $PROJECT to ~/.grok/trusted_folders.toml" >&2
+fi
+# Grok prints nothing when it skips rules; ask it before the run.
+if [[ "$BACKEND" == grok && "$TRUST" -eq 0 ]]; then
+  TRUST_STATE="$(grok inspect --json 2>/dev/null | "$PYTHON" -c 'import json, sys
+try:
+    t = json.load(sys.stdin).get("projectTrusted")
+except Exception:
+    t = None
+print("" if t is True else "untrusted" if t is False else "unknown")' 2>/dev/null)" || TRUST_STATE=unknown
+fi
 if [[ -n "$SID" ]]; then session_data preassign; fi
 if [[ -n "$RESUME_ID" ]]; then session_data attempt; fi
 cli_ec=0
@@ -422,6 +467,8 @@ if [[ "$capture_ec" -ne 0 ]]; then
 elif [[ -n "$RESUME_ID" && "$cli_ec" -ne 0 ]] && ! grep -qx 'usage-limit' "$STATUS"; then
   blocked_capture 'exact resume failed' "CLI exit $cli_ec. $(cat "$ERR") Read preserved stdout.md/events.jsonl and the prior checkpoint; no fresh-thread fallback was launched."
 fi
+# After every blocked_capture, which rewrites last.md.
+warn_untrusted
 if [[ "$LIMIT_RETRY" -eq 0 ]] && grep -qx 'usage-limit' "$STATUS" && [[ -s "$RUN/session-id" && -s "$RUN/session.json" ]]; then
   decision="$("$PYTHON" "$REG" limit "$LAST" "$STDOUT" "$ERR" "$PROVIDER_ERRORS" 2>/dev/null || true)"
   case "$decision" in
@@ -447,10 +494,11 @@ EOF
       echo "spawn.sh: usage limit, waiting ${secs}s then resuming ${sid}" >&2
       sleep "$secs"
       set +e
-      env -u HARNESS_SUBAGENT_RUN "$0" \
-        --backend "$BACKEND" --model "$MODEL" --project "$PROJECT" --run "$attempt" \
-        --resume-id "$sid" --limit-retry \
-        ${EFFORT:+--effort "$EFFORT"}
+      retry_args=(--backend "$BACKEND" --model "$MODEL" --project "$PROJECT" --run "$attempt"
+        --resume-id "$sid" --limit-retry)
+      if [[ -n "$EFFORT" ]]; then retry_args+=(--effort "$EFFORT"); fi
+      if [[ "$TRUST" -eq 1 ]]; then retry_args+=(--trust-project); fi
+      env -u HARNESS_SUBAGENT_RUN "$0" "${retry_args[@]}"
       child_ec=$?
       set -e
       cp -f "$attempt/last.md" "$RUN/last.md" 2>/dev/null || true
