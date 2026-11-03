@@ -99,6 +99,21 @@ else
   fail_msg "muse dry-run (exit=$ec out=$out err=$err)"
 fi
 
+# Trust also runs project hooks, so it is opt-in; grok's --trust persists.
+new_run
+run_cmd "$BASH_BIN" "$SPAWN" --model "Grok 4.7" --project "$ROOT" --run "$run" --dry-run
+grok_plain="$out"
+new_run
+run_cmd "$BASH_BIN" "$SPAWN" --model "Grok 4.7" --trust-project --project "$ROOT" --run "$run" --dry-run
+grok_trust="$out"
+new_run
+run_cmd "$BASH_BIN" "$SPAWN" --model Spark --trust-project --project "$ROOT" --run "$run" --dry-run
+if [[ "$grok_plain" != *" --trust "* && "$grok_trust" == *" --trust "* && "$out" == *" --trust-workspace "* ]]; then
+  ok "--trust-project: grok --trust, muse --trust-workspace, off by default"
+else
+  fail_msg "trust flags (grok=$grok_plain grok_trust=$grok_trust muse=$out)"
+fi
+
 new_run
 run_cmd "$BASH_BIN" "$SPAWN" --model "Spark 1.2" --effort max --project "$ROOT" --run "$run" --dry-run
 if [[ "$ec" -eq 2 && "$err" == *"effort must be one of"* ]]; then ok "muse: Spark 1.2 refuses max"; else fail_msg "Spark 1.2 max (exit=$ec err=$err)"; fi
@@ -172,9 +187,17 @@ case "$dest" in
   "$(pwd -P)"/*|"$(cygpath -m "$(pwd -P)" 2>/dev/null)"/*) printf 'VERDICT — MUSE_OK\n' >"$dest" ;;
   *) echo "sandbox: write outside workspace denied: $dest" >&2 ;;
 esac
+[[ -n "${STUB_UNTRUSTED-}" ]] && echo "muse: warning: rules file at AGENTS.md exists, but the workspace is untrusted, so it is skipped for this session; restart with --trust-workspace to load project rules" >&2
 echo "Done."
 SH
-chmod +x "$STUBS/claude" "$STUBS/codex" "$STUBS/muse"
+# grok stub: `inspect --json` reports $STUB_TRUSTED (default false); a run answers on stdout.
+cat >"$STUBS/grok" <<'SH'
+#!/usr/bin/env bash
+if [[ "$1" == inspect ]]; then printf '{"projectTrusted": %s}
+' "${STUB_TRUSTED:-false}"; exit 0; fi
+echo "VERDICT — GROK_OK"
+SH
+chmod +x "$STUBS/claude" "$STUBS/codex" "$STUBS/muse" "$STUBS/grok"
 
 capture() {  # capture <stdout> <report or empty> <model>; sets $run
   new_run
@@ -193,6 +216,15 @@ if [[ "$(cat "$run/capture-status.txt")" == ok-report && "$(head -n 1 "$run/last
   ok "capture: report.md beats the last turn"
 else
   fail_msg "capture report (status=$(cat "$run/capture-status.txt" 2>/dev/null) last=$(head -c 200 "$run/last.md" 2>/dev/null))"
+fi
+
+# Windows CLIs (codex via PowerShell, 2026-11-03) may write report.md with a UTF-8 BOM.
+capture 'Saved report.md.' $'\xef\xbb\xbfVERDICT — BOM_REPORT
+details' Sonnet
+if [[ "$(cat "$run/capture-status.txt")" == ok-report && "$(head -n 1 "$run/last.md")" == "VERDICT — BOM_REPORT" ]]; then
+  ok "capture: a BOM before VERDICT is stripped"
+else
+  fail_msg "capture BOM (status=$(cat "$run/capture-status.txt" 2>/dev/null) last=$(head -c 200 "$run/last.md" | od -c | head -2))"
 fi
 
 capture "You've hit your usage limit. Try again later." '' Sonnet
@@ -224,6 +256,26 @@ if [[ "$ec" -eq 0 && "$(cat "$run/capture-status.txt")" == ok-report && "$(head 
   ok "capture: muse collects only its own in-project report"
 else
   fail_msg "capture muse (exit=$ec status=$(cat "$run/capture-status.txt" 2>/dev/null) last=$(head -c 200 "$run/last.md" 2>/dev/null) err=$err stderr=$(cat "$run/stderr.log" 2>/dev/null) left=$left)"
+fi
+
+# An untrusted child skips the project's AGENTS.md and skills yet still reports;
+# the parent must see that in last.md. The status token stays unchanged.
+new_run
+run_cmd env PATH="$STUBS:$PATH" STUB_UNTRUSTED=1 "$BASH_BIN" "$SPAWN" --model Wonder --project "$proj" --run "$run"
+muse_ec=$ec; muse_last="$(cat "$run/last.md")"; muse_status="$(cat "$run/capture-status.txt")"
+new_run
+run_cmd env PATH="$STUBS:$PATH" "$BASH_BIN" "$SPAWN" --model "Grok 4.7" --project "$proj" --run "$run"
+grok_ec=$ec; grok_last="$(cat "$run/last.md")"; grok_status="$(cat "$run/capture-status.txt")"
+new_run
+run_cmd env PATH="$STUBS:$PATH" STUB_TRUSTED=true "$BASH_BIN" "$SPAWN" --model "Grok 4.7" --project "$proj" --run "$run"
+trusted_last="$(cat "$run/last.md")"
+new_run
+run_cmd env PATH="$STUBS:$PATH" STUB_TRUSTED='not-json' "$BASH_BIN" "$SPAWN" --model "Grok 4.7" --project "$proj" --run "$run"
+unknown_last="$(cat "$run/last.md")"
+if [[ "$muse_ec" -eq 0 && "$grok_ec" -eq 0 && "$ec" -eq 0 && "$grok_status" == ok && "$muse_status" == ok-report && "$muse_last" == "VERDICT — MUSE_OK"*"WARNING"*"untrusted"*"--trust-project"*    && "$grok_last" == "VERDICT — GROK_OK"*"WARNING"*"untrusted"* && "$trusted_last" != *WARNING* && "$unknown_last" == *"WARNING"*"could not confirm trust"* ]]; then
+  ok "capture: an untrusted grok/muse run is flagged in last.md"
+else
+  fail_msg "untrusted warning (muse=$muse_last status=$muse_status grok=$grok_last trusted=$trusted_last unknown=$unknown_last)"
 fi
 
 # The worker and capture must agree on one run dir. Git Bash shows %TEMP% as
