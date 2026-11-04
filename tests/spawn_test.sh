@@ -77,8 +77,8 @@ fi
 
 new_run
 run_cmd "$BASH_BIN" "$SPAWN" --backend agy --model gemini-test --project "$ROOT" --run "$run" --dry-run
-if [[ "$ec" -eq 0 && "$out" == *"--dangerously-skip-permissions"* && "$out" != *"--add-dir"* ]]; then
-  ok "agy: writes in the project, not the run dir"
+if [[ "$ec" -eq 0 && "$out" == *"--mode auto --sandbox"* && "$out" == *"--settings"* && "$out" == *"proceed-in-sandbox"* && "$out" != *"--dangerously-skip-permissions"* && "$out" != *"--add-dir"* ]]; then
+  ok "agy: auto mode with sandboxed approval fallback, project remains the workspace"
 else
   fail_msg "agy dry-run (exit=$ec out=$out err=$err)"
 fi
