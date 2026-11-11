@@ -114,5 +114,6 @@ live_one muse muse-wonder-1.0
 # Wonder Full needs the Muse Power Usage or Maximum Usage plan.
 [[ -n "${HS_LIVE_WONDER_FULL-}" ]] && live_one muse muse-wonder-full-1.0
 live_write muse muse-spark-1.3
+live_one muse muse-ember-1.0
 
 finish

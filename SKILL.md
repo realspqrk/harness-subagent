@@ -5,16 +5,16 @@ description: >
   delegates to a subagent. CLIs are Claude Code, Codex, Grok Build, Antigravity
   (agy), the Cursor CLI (cursor-agent), and Muse Code (muse). Use when the user says
   harness-subagent, asks for another vendor's model or second opinion, or names a
-  CLI or a model such as Astra, Sol, Terra, Opus, Opus 5.5, Fable, Sonnet, Sonnet 5.5,
-  Haiku, Grok 4.7, Muse, Wonder, Wonder Full, or Spark. Do not use to install those
-  CLIs. Do not use if this session was launched by this skill (the prompt starts
+  CLI or a model such as Astra, Sol, Terra, Opus, Opus 5.5, Fable, Fable 5.2, Sonnet,
+  Sonnet 5.5, Haiku, Grok 4.7, Muse, Wonder, Wonder Full, Spark, or Ember. Do not
+  use to install those CLIs. Do not use if this session was launched by this skill (the prompt starts
   with YOU ARE THE WORKER, or HARNESS_SUBAGENT_RUN is set). Do that job. Do not
   delegate again.
 license: MIT
 compatibility: Requires claude, codex, grok, agy, cursor-agent, and/or muse on PATH. Windows needs Git Bash. Python 3.
 metadata:
   author: realspqrk
-  version: "0.6.2"
+  version: "0.6.3"
 ---
 
 # Harness subagent
@@ -66,7 +66,7 @@ Each cell starts at the vendor's own starting effort for that kind of work, from
 
 Antigravity and Cursor serve several vendors, so they have no column. If the user names one of them without a model, list its models (`agy models`, `cursor-agent --list-models`) and ask once.
 
-Do not choose `max`, `ultra`, Fable, Wonder Full, Grok 4.7 Fast, or an id that `scripts/registry.json` does not list, unless the user names it. Under `claude -p`, Fable bills usage credits without asking. Wonder Full runs only on the Muse Power Usage or Maximum Usage plan. Grok 4.7 Fast costs twice the token price of Grok 4.7.
+Do not choose `max`, `ultra`, Fable, Wonder Full, Grok 4.7 Fast, or an id that `scripts/registry.json` does not list, unless the user names it. Under `claude -p`, Fable can bill usage credits without asking, depending on plan and seat tier. Wonder Full runs only on the Muse Power Usage or Maximum Usage plan. Grok 4.7 Fast costs twice the token price of Grok 4.7.
 
 ### When the result falls short
 

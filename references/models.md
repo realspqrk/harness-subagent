@@ -1,6 +1,6 @@
 # Models
 
-Spoken names resolve to these ids. Prices are USD per million tokens, standard rate, short context, as published on 2026-09-22, plus Sonnet 5.5 on 2026-09-29, GPT-6.1 Sol on 2026-09-30, Haiku 5.5 and the Muse models on 2026-10-12, Muse Wonder Full on 2026-10-13, and GPT-6.1 Terra on 2026-10-27. A higher effort does not change the per-token rate. It spends more tokens, and those tokens are billed at the output rate.
+Spoken names resolve to these ids. Prices are USD per million tokens, standard rate, short context, as published on 2026-09-22, plus Sonnet 5.5 on 2026-09-29, GPT-6.1 Sol on 2026-09-30, Haiku 5.5 and the Muse models on 2026-10-12, Muse Wonder Full on 2026-10-13, GPT-6.1 Terra on 2026-10-27, and Fable 5.2 and Muse Ember on 2026-11-11. A higher effort does not change the per-token rate. It spends more tokens, and those tokens are billed at the output rate.
 
 `spawn.sh` without `--effort` keeps the CLI default. A host passes `--effort` anyway; see [SKILL.md](../SKILL.md#when-none-is-named) for the starting effort per task. This file is the catalog behind that table.
 
@@ -13,7 +13,8 @@ Sections: [Claude Code](#claude-code-claude) · [Codex](#codex-codex) · [Grok B
 | Say | Id | Input | Output | Efforts |
 |---|---|---:|---:|---|
 | Opus 5.5, Opus | `claude-opus-5-5` | 4 | 20 | low, medium, high, xhigh, max |
-| Fable 5.1, Fable | `claude-fable-5-1` | 10 | 50 | low, medium, high, xhigh, max |
+| Fable 5.2, Fable | `claude-fable-5-2` | 8 | 40 | low, medium, high, xhigh, max |
+| Fable 5.1 | `claude-fable-5-1` | 10 | 50 | low, medium, high, xhigh, max |
 | Opus 5 | `claude-opus-5` | 5 | 25 | low, medium, high, xhigh, max |
 | Fable 5 | `claude-fable-5` | 10 | 50 | low, medium, high, xhigh, max |
 | Sonnet 5.5, Sonnet | `claude-sonnet-5-5` | 2 | 10 | low, medium, high, xhigh, max |
@@ -22,16 +23,18 @@ Sections: [Claude Code](#claude-code-claude) · [Codex](#codex-codex) · [Grok B
 
 Opus 5.5 shipped 2026-09-22. Sonnet 5.5 shipped 2026-09-28 and needs Claude Code 2.1.284 or later. On the Anthropic API the short aliases `opus` and `sonnet` point at Opus 5.5 and Sonnet 5.5. This skill passes the full id. Saying Sonnet selects Sonnet 5.5. Opus 5, Fable 5, and Sonnet 5 are still served and stay under their versioned names.
 
+Fable 5.2 shipped 2026-11-09 and needs Claude Code 2.1.321 or later. Saying Fable selects it; in Claude Code the `fable` alias resolves to Fable 5.2 too, except in Claude apps gateway sessions, where it stays Fable 5. Fable 5.1 and Fable 5 are still served as legacy models and stay under their versioned names. Fable 5.2 supports auto mode. Under `claude -p`, Fable can bill usage credits without asking, depending on plan and seat tier. Claude Mythos 5.2 shipped the same day for verified organizations only, so it is not listed. On 2026-11-11 a Fable 5.2 call at `low` in Claude Code 2.1.322 replied, and an invented id failed.
+
 Haiku 5.5 shipped 2026-10-07 and needs Claude Code 2.1.293 or later. Saying Haiku selects it. Its price is for prompts up to 100k tokens; above that a request pays 0.50 input and 2.50 output. Haiku 4.5 is not listed, so spawn.sh refuses it. It does not support auto mode, so `claude -p --permission-mode auto` starts in Manual and every edit is denied, which ends in `no-verdict`. Haiku 5.5 supports auto mode. On 2026-10-12 a Haiku 5.5 spawn at `low` wrote a file and returned `ok-report`.
 
-Sonnet 5.5 recalibrates its effort levels relative to Sonnet 5, so an effort that suited Sonnet 5 is not the same spend on Sonnet 5.5. Claude Code defaults Opus 5.5, Sonnet 5.5, and Haiku 5.5 to `medium`. The Claude Platform API defaults Sonnet 5.5 to `high`.
+Sonnet 5.5 recalibrates its effort levels relative to Sonnet 5, so an effort that suited Sonnet 5 is not the same spend on Sonnet 5.5. Claude Code defaults Fable 5.2, Opus 5.5, Sonnet 5.5, and Haiku 5.5 to `medium`. The Claude Platform API defaults Sonnet 5.5 and Fable 5.2 to `high`.
 
-Vendor descriptions, from the Claude Code model docs (accessed 2026-09-29).
+Vendor descriptions, from the Claude Code model docs (accessed 2026-09-29; Fable 5.2 default 2026-11-11).
 
 | Effort | What Anthropic says |
 |---|---|
 | low | Quick exchanges you review each result of, such as brainstorming, a first sketch, or a rename. |
-| medium | The default on Opus 5.5, Sonnet 5.5, and Haiku 5.5. Day-to-day work with a clear scope, such as implementing a feature. On other models it trades some intelligence for fewer tokens. |
+| medium | The default on Fable 5.2, Opus 5.5, Sonnet 5.5, and Haiku 5.5. Day-to-day work with a clear scope, such as implementing a feature. On other models it trades some intelligence for fewer tokens. |
 | high | Work where verification matters or edge cases are likely, such as fixing a bug in an existing codebase. The default on Fable 5.1, Fable 5, Opus 5, and Sonnet 5. |
 | xhigh | Deeper reasoning, higher token spend. |
 | max | Hard problems you want worked through without you. May show diminishing returns and overthinking. |
@@ -40,6 +43,18 @@ Published scores that name an effort.
 
 | Model | Benchmark | Score | Effort on that score |
 |---|---|---:|---|
+| Fable 5.2 | FrontierCode 2.0 | 49.1% | xhigh, its best |
+| Fable 5.2 | FrontierCode 2.0 | 45.7% | max |
+| Fable 5.2 | FrontierCode 2.0 | 45.3% | high |
+| Fable 5.2 | FrontierCode 2.0 | 37.6% | medium |
+| Fable 5.2 | FrontierCode 2.0 | 34.2% | low |
+| Fable 5.1 | FrontierCode 2.0 | 32.4% | xhigh |
+| Fable 5.2 | CursorBench 4.0 | 60.0% | max |
+| Fable 5.2 | CursorBench 4.0 | 56.9% | high |
+| Fable 5.2 | CursorBench 4.0 | 56.3% | xhigh |
+| Fable 5.2 | CursorBench 4.0 | 54.8% | medium |
+| Fable 5.2 | CursorBench 4.0 | 53.2% | low |
+| Fable 5.2 | Terminal-Bench 4.0 | 67.6% | max, with safeguards on |
 | Opus 5.5 | FrontierCode v1.1 | 54.6% | medium |
 | Opus 5.5 | CursorBench 4.0 | 52.5% | medium |
 | Opus 5.5 | FrontierCode v1.1 | 54.4% | max |
@@ -59,9 +74,9 @@ Published scores that name an effort.
 | Haiku 5.5 | CursorBench 4.0 | 36.9% | medium |
 | Haiku 5.5 | CursorBench 4.0 | 30.9% | low |
 
-Sonnet 5.5 scores lower on FrontierCode at max than at xhigh. Anthropic's footnote says that at max it more often ran a multi-subagent code review, which led to timeouts or edits beyond the task. The medium and high Sonnet 5.5 rows come from the per-effort cost charts on the announcement page, not its headline table.
+Fable 5.2 also scores lower on FrontierCode 2.0 at max than at xhigh. FrontierCode 2.0 is not v1.1, so do not compare its rows with the v1.1 rows. Its FrontierCode and CursorBench rows come from the Fable 5.2 system card, sections 8.4 and 8.8. Cognition and Cursor ran those benchmarks, and Cursor's own chart shows the same CursorBench numbers. Sonnet 5.5 scores lower on FrontierCode at max than at xhigh. Anthropic's footnote says that at max it more often ran a multi-subagent code review, which led to timeouts or edits beyond the task. The medium and high Sonnet 5.5 rows come from the per-effort cost charts on the announcement page, not its headline table.
 
-Sources: https://platform.claude.com/docs/en/about-claude/pricing, https://code.claude.com/docs/en/model-config, https://www.anthropic.com/news/claude-opus-5-5, and https://www.anthropic.com/claude-sonnet-5-5 (accessed 2026-09-29). Haiku 5.5: the same pricing and model-config pages, and https://code.claude.com/docs/en/permission-modes for auto mode support (accessed 2026-10-12). Haiku 5.5 scores: the Haiku 5.5 system card, https://www-cdn.anthropic.com/e1080d6bf5ae2018ea3c2f414064be03232f5be5/Claude%20Haiku%205.5%20System%20Card.pdf, and https://cursor.com/docs/models/claude-haiku-5-5 (accessed 2026-10-12)
+Sources: https://platform.claude.com/docs/en/about-claude/pricing, https://code.claude.com/docs/en/model-config, https://www.anthropic.com/news/claude-opus-5-5, and https://www.anthropic.com/claude-sonnet-5-5 (accessed 2026-09-29). Haiku 5.5: the same pricing and model-config pages, and https://code.claude.com/docs/en/permission-modes for auto mode support (accessed 2026-10-12). Fable 5.2: https://platform.claude.com/docs/en/about-claude/models/overview, the same pricing, model-config, and permission-modes pages, https://www.anthropic.com/claude/fable, https://www.anthropic.com/claude-fable-and-mythos-5-2, the system card at https://www.anthropic.com/claude-fable-5-2-mythos-5-2-system-card, and https://cursor.com/cursorbench (accessed 2026-11-11). Haiku 5.5 scores: the Haiku 5.5 system card, https://www-cdn.anthropic.com/e1080d6bf5ae2018ea3c2f414064be03232f5be5/Claude%20Haiku%205.5%20System%20Card.pdf, and https://cursor.com/docs/models/claude-haiku-5-5 (accessed 2026-10-12)
 
 ## Codex (`codex`)
 
@@ -128,7 +143,7 @@ Source: https://x.ai/news/grok-4-7 (2026-09-21) and https://docs.x.ai/developers
 
 ## Muse Code (`muse`)
 
-Meta's API has one price at every context length, up to 1,048,576 tokens. Reasoning tokens bill as output. Muse Wonder Full has no per-token price.
+Meta's API has one price at every context length, up to 1,048,576 tokens, except Muse Ember: a request over 200k input tokens pays 0.30 input and 1.50 output for the whole request. Reasoning tokens bill as output. Muse Wonder Full has no per-token price.
 
 | Say | Id | Input | Output | Efforts |
 |---|---|---:|---:|---|
@@ -136,10 +151,13 @@ Meta's API has one price at every context length, up to 1,048,576 tokens. Reason
 | Muse Wonder, Wonder, Muse | `muse-wonder-1.0` | 4 | 20 | minimal, low, medium, high, xhigh, max, ultra |
 | Spark 1.3, Spark | `muse-spark-1.3` | 1.25 | 4.25 | minimal, low, medium, high, xhigh, max, ultra |
 | Spark 1.2 | `muse-spark-1.2` | 1.25 | 4.25 | minimal, low, medium, high, xhigh, ultra |
+| Muse Ember, Ember | `muse-ember-1.0` | 0.10 | 0.50 | minimal, low, medium, high, xhigh, max, ultra |
 
-Muse Wonder shipped 2026-10-12, in preview. Saying Muse or Wonder selects it. Spark 1.3 shipped 2026-09-02 and is the one Meta recommends for new work. Muse Code 1.4.6 documents Spark 1.2 as its default.
+Muse Wonder shipped 2026-10-12, in preview. Saying Muse or Wonder selects it. Spark 1.3 shipped 2026-09-02 and is the one Meta recommends for new work. Muse Code documents Spark 1.2 as its default (configuration page, 2026-11-11).
 
-Muse Wonder Full shipped 2026-10-12. Meta calls it the higher-capability variant of Wonder, built on a larger base model. It runs only in Muse Code on the Power Usage ($50/month) or Maximum Usage ($200/month) plan, never on the Model API, and choosing `max` on Wonder does not select it. Meta's models page prints no id. Its model page prints `muse-wonder-full-1.0`, and on 2026-10-13 Muse Code 1.4.6 ran that id on Windows and WSL at minimal through max, while an invented id failed with "does not exist or you lack access". On a plan without it, expect that same error. Saying Wonder or Muse still selects `muse-wonder-1.0`, which every plan has. Spark 1.1 runs only on the Model API, not in Muse Code. The `-contributor` ids, priced at 0.10/0.20, let Meta train on your sessions. They are not listed, so `spawn.sh` refuses them. Muse Code 1.4.6 turns contributor mode on by default for subscribers. From 1.4.8, with that mode on, Muse Code routes a family to its `-contributor` model, whichever id `spawn.sh` passes. Turn it off in Muse Code. This machine's `~/.config/muse/settings.json` shows the setting as `contributor_mode_enabled`.
+Muse Ember shipped 2026-11-09. Meta calls it its smallest, most efficient model, for sub-agent tasks, tool calls, routing, and extraction, with Spark or Wonder planning on the main loop. It runs on the Model API and in Muse Code on pay-as-you-go and every subscription. It has no `-contributor` variant. Its API default effort is `max`. Meta names no starting effort for it, so it is not in the task table in SKILL.md. On 2026-11-11 Muse Code 1.4.15 ran `muse-ember-1.0` at `low`, and an invented id failed with "does not exist or you lack access".
+
+Muse Wonder Full shipped 2026-10-12. Meta calls it the higher-capability variant of Wonder, built on a larger base model. It runs only in Muse Code on the Power Usage ($50/month) or Maximum Usage ($200/month) plan, never on the Model API, and choosing `max` on Wonder does not select it. Meta's models page prints no id. Its model page prints `muse-wonder-full-1.0`, and on 2026-10-13 Muse Code 1.4.6 ran that id on Windows and WSL at minimal through max, while an invented id failed with "does not exist or you lack access". On a plan without it, expect that same error. Saying Wonder or Muse still selects `muse-wonder-1.0`, which every plan has. Spark 1.1 runs only on the Model API, not in Muse Code. The `-contributor` ids, priced at 0.10/0.20, let Meta train on your sessions. They are not listed, so `spawn.sh` refuses them. Muse Code 1.4.6 turns contributor mode on by default for subscribers. From 1.4.8, with that mode on, Muse Code routes a family that has a `-contributor` model to it, whichever id `spawn.sh` passes. Ember has none, and Meta does not say what contributor mode does to an Ember run. Turn it off in Muse Code. This machine's `~/.config/muse/settings.json` shows the setting as `contributor_mode_enabled`.
 
 The CLI defaults to `high`. `none` fails on Meta models. On 2026-10-12 the API refused `max` on Spark 1.2 and listed minimal through xhigh. `ultra` is a Muse Code setting, not an API value. It sends the model's highest level, or `xhigh` where the model has no higher one, and it makes Muse Code delegate more. On 2026-10-13 this account's Muse Code printed `gate ultra_reasoning_effort is closed; using xhigh` for every Muse model.
 
@@ -169,6 +187,8 @@ Published scores that name an effort. These are not one shared test.
 | Muse Wonder | CursorBench 4.0 | 46.1% | high |
 | Muse Wonder | CursorBench 4.0 | 45.2% | medium |
 | Muse Wonder | CursorBench 4.0 | 41.7% | low |
+| Muse Ember | Terminal-Bench 4.0 (Artificial Analysis run) | 40.9% | max, mini-swe-agent harness |
+| Muse Ember | FrontierCode 2.0 (Artificial Analysis run) | 27.2% | max |
 | Spark 1.3 | DeepSWE v1.1 | 75.4% | max, mini-swe-agent harness |
 | Spark 1.2 | DeepSWE v1.1 | 55.0% | xhigh |
 | Spark 1.3 | Terminal-Bench 2.1 | 88.8% | max |
@@ -178,14 +198,16 @@ Published scores that name an effort. These are not one shared test.
 | Spark 1.3 | CursorBench 4.0 | 33.4% | high |
 | Spark 1.3 | CursorBench 4.0 | 29.3% | low |
 
-The Muse Wonder CursorBench rows come from Cursor's table. The other Wonder and Wonder Full rows are read from Meta's launch scorecard image. Every column on it is labeled `(max)`, except the Wonder Full SWE-Marathon cell, which is labeled `(xhigh)`. Meta says SWE-Marathon's Claude and GPT rows ran in Claude Code and Codex, so that row is not one shared harness. On the same card, Opus 5.5 at max scores 59.6 on Terminal-Bench 4.0 and 70.5 on ProgramBench, above both Wonder Full rows. No FrontierCode score is published for any Muse model.
+The Muse Wonder CursorBench rows come from Cursor's table. The other Wonder and Wonder Full rows are read from Meta's launch scorecard image. Every column on it is labeled `(max)`, except the Wonder Full SWE-Marathon cell, which is labeled `(xhigh)`. Meta says SWE-Marathon's Claude and GPT rows ran in Claude Code and Codex, so that row is not one shared harness. On the same card, Opus 5.5 at max scores 59.6 on Terminal-Bench 4.0 and 70.5 on ProgramBench, above both Wonder Full rows. Meta's Ember scorecard runs every model at max. On it, Haiku 5.5 at max scores 34.9 on FrontierCode 2.0, above Ember. Ember is not on CursorBench. No FrontierCode score is published for Spark or Wonder.
 
-Sources: https://dev.meta.ai/docs/models, https://dev.meta.ai/docs/pricing-rate-limits, https://dev.meta.ai/docs/reasoning, https://dev.meta.ai/docs/muse-code/configuration, https://research.meta.ai/blog/muse-wonder, https://research.meta.ai/static/muse-wonder-model-card, https://x.com/AIatMeta/status/2109691150932025836 (scorecard), https://research.meta.ai/static/muse-spark-1-3-multimodal-evaluation-methodology, and https://cursor.com/cursorbench (accessed 2026-10-12; Wonder rows accessed 2026-10-27). Wonder Full id and plans: https://dev.meta.ai/models/muse-wonder (accessed 2026-10-13).
+Sources: https://dev.meta.ai/docs/models, https://dev.meta.ai/docs/pricing-rate-limits, https://dev.meta.ai/docs/reasoning, https://dev.meta.ai/docs/muse-code/configuration, https://research.meta.ai/blog/muse-wonder, https://research.meta.ai/static/muse-wonder-model-card, https://x.com/AIatMeta/status/2109691150932025836 (scorecard), https://research.meta.ai/static/muse-spark-1-3-multimodal-evaluation-methodology, and https://cursor.com/cursorbench (accessed 2026-10-12; Wonder rows accessed 2026-10-27). Wonder Full id and plans: https://dev.meta.ai/models/muse-wonder (accessed 2026-10-13). Muse Ember: https://dev.meta.ai/docs/muse-ember, https://dev.meta.ai/docs/pricing-rate-limits, https://dev.meta.ai/docs/muse-code/subscriptions, and https://research.meta.ai/blog/muse-ember with its scorecard at https://x.com/AIatMeta/status/2119853595453702580 (accessed 2026-11-11).
 
 ## Antigravity (`agy`) and Cursor CLI (`cursor`)
 
 No fixed model list lives here. Pass the id the CLI accepts.
 
-`agy models` lists ids with the effort built in, such as `gemini-3.8-flash-high`. Such an id takes no `--effort`. agy 1.2.13 rejects the pair as a conflict. To choose the effort with `--effort`, pass the base id, such as `gemini-3.8-flash`. The CLI help lists `low`, `medium`, `high`, and `max`, but each model takes only some of them. On 2026-09-29 `gemini-3.8-flash` took `low`, `medium`, and `high`, and `gemini-3.1-pro` took `low` and `high`. agy names the allowed set when you pass another one. Cursor has no separate effort flag. When you pass `--effort`, the spawn command writes it into the model id as `[effort=...]`, which `cursor-agent --help` documents.
+`agy models` lists ids with the effort built in, such as `gemini-3.8-flash-high`. Such an id takes no `--effort`. agy 1.2.13 rejects the pair as a conflict. To choose the effort with `--effort`, pass the base id, such as `gemini-3.8-flash`. The CLI help lists `low`, `medium`, `high`, and `max`, but each model takes only some of them. On 2026-09-29 `gemini-3.8-flash` took `low`, `medium`, and `high`. agy names the allowed set when you pass another one. Cursor has no separate effort flag. When you pass `--effort`, the spawn command writes it into the model id as `[effort=...]`, which `cursor-agent --help` documents.
+
+The catalog depends on the Google plan. Per Antigravity's models page (accessed 2026-11-11), Gemini 4 Argon (2026-10-13) needs Google AI Pro or higher, Gemini 4 Carbon (2026-11-10) needs Google AI Ultra or Enterprise, Gemini 3.1 Pro is Enterprise only, and Gemini 3.8 Flash is on every plan. Both Gemini 4 models take `low`, `medium`, and `high`. On 2026-11-11 this account's agy 1.5.5 listed only Gemini 3.8 Flash, Claude Sonnet 4.6, Claude Opus 4.6, and GPT-OSS 120B, and it refused `gemini-4-argon` and `gemini-4-carbon` with the same error as an invented id. The page says the Claude 4.6 and GPT-OSS models leave Antigravity on 2026-11-18. Run `agy models` before naming an id. Source: https://antigravity.google/docs/models/ and https://aistudio.google.com/docs/latest-model.
 
 List Cursor models with `cursor-agent --list-models`. The binary is `cursor-agent`. On this platform `agent` is often Grok, not Cursor.

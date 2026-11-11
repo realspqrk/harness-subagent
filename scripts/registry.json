@@ -16,8 +16,15 @@
           "efforts": ["low", "medium", "high", "xhigh", "max"]
         },
         {
+          "id": "claude-fable-5-2",
+          "say": ["fable 5.2", "claude fable 5.2", "fable"],
+          "input_usd_per_mtok": 8,
+          "output_usd_per_mtok": 40,
+          "efforts": ["low", "medium", "high", "xhigh", "max"]
+        },
+        {
           "id": "claude-fable-5-1",
-          "say": ["fable 5.1", "fable"],
+          "say": ["fable 5.1", "claude fable 5.1"],
           "input_usd_per_mtok": 10,
           "output_usd_per_mtok": 50,
           "efforts": ["low", "medium", "high", "xhigh", "max"]
@@ -209,6 +216,13 @@
           "input_usd_per_mtok": 1.25,
           "output_usd_per_mtok": 4.25,
           "efforts": ["minimal", "low", "medium", "high", "xhigh", "ultra"]
+        },
+        {
+          "id": "muse-ember-1.0",
+          "say": ["muse ember 1.0", "muse ember", "ember 1.0", "ember"],
+          "input_usd_per_mtok": 0.1,
+          "output_usd_per_mtok": 0.5,
+          "efforts": ["minimal", "low", "medium", "high", "xhigh", "max", "ultra"]
         }
       ]
     }

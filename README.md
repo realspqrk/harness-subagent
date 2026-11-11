@@ -70,7 +70,7 @@ The exit code is 0 only when every CLI is present, every CLI with a login check 
 
 The protocol is [SKILL.md](SKILL.md). This is the short version.
 
-1. **You name the CLI and the model, or let the parent pick.** Spoken names such as Opus 5.5, Fable, Sonnet 5.5, Astra, Sol, Terra, Luna, Grok 4.7, Muse Wonder, Wonder Full, and Spark resolve to exact ids in [references/models.md](references/models.md), which also lists prices and effort levels. For Antigravity and Cursor, pass the id that CLI accepts. If you leave the CLI, model, or effort out, the parent fills each blank from the task table in [SKILL.md](SKILL.md#when-none-is-named), says what it picked, and spawns. It never picks `max`, `ultra`, Fable, Wonder Full, or Grok 4.7 Fast on its own.
+1. **You name the CLI and the model, or let the parent pick.** Spoken names such as Opus 5.5, Fable, Sonnet 5.5, Astra, Sol, Terra, Luna, Grok 4.7, Muse Wonder, Wonder Full, Spark, and Ember resolve to exact ids in [references/models.md](references/models.md), which also lists prices and effort levels. For Antigravity and Cursor, pass the id that CLI accepts. If you leave the CLI, model, or effort out, the parent fills each blank from the task table in [SKILL.md](SKILL.md#when-none-is-named), says what it picked, and spawns. It never picks `max`, `ultra`, Fable, Wonder Full, or Grok 4.7 Fast on its own.
 2. **The parent writes a brief.** It creates `brief.md` in a new temp run directory: one task sentence, where to look, what was already tried, and when it is done. It names paths. It does not paste the repo.
 3. **The parent runs `scripts/spawn.sh` in the background** and waits for it to exit.
 4. **The parent judges the report.** It reads `report.md` (or `last.md`) and `capture-status.txt`, then says what it agrees with, what it does not, and what it will do. A pasted report is not an answer.
@@ -88,7 +88,7 @@ Things you can say:
 - *Have Claude Code with Opus 5.5 build the settings page layout in `src/ui/settings/`.*
 - *Ask Grok 4.7 to try to refute the plan in `docs/plan.md`.*
 - *Use harness-subagent: Sol, medium effort. Find out why `tests/api` flakes on CI. Report only, no edits.*
-- *Get Fable 5.1 to review this migration before I merge it.*
+- *Get Fable 5.2 to review this migration before I merge it.*
 - *Get a second opinion on this plan from another vendor.* (The parent picks the model and effort.)
 
 One job per spawn. "Implement and then review it" is two spawns, or one spawn plus the parent's own review.
