@@ -21,7 +21,8 @@ Terra|codex gpt-6.1-terra
 GPT-5.6 Terra|codex gpt-5.6-terra
 Opus|claude claude-opus-5-5
 Opus 5|claude claude-opus-5
-Fable|claude claude-fable-5-1
+Fable|claude claude-fable-5-2
+Fable 5.1|claude claude-fable-5-1
 Fable 5|claude claude-fable-5
 Sonnet|claude claude-sonnet-5-5
 Sonnet 5|claude claude-sonnet-5
@@ -32,6 +33,7 @@ Wonder|muse muse-wonder-1.0
 Wonder Full|muse muse-wonder-full-1.0
 Spark|muse muse-spark-1.3
 Spark 1.2|muse muse-spark-1.2
+Ember|muse muse-ember-1.0
 EOF
 
 # No spoken name or id may point at two models.
