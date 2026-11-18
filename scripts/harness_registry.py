@@ -134,6 +134,8 @@ CREDIT_BLOCK = re.compile(
     r"|(credits[\s_:=-]+((are|have been)\s+)?(insufficient|exhausted))"
     r"|(spend(ing)?[\s_-]+(limit|cap)[\s:=-]+((has been|is)\s+)?(reached|exceeded|exhausted))"
     r"|((exhausted|exceeded)[\s_:=-]+paid\s+quota)|(paid\s+quota[\s_:=-]+((has been|is)\s+)?(exhausted|exceeded))"
+    r"|((^|[^\w])(http(/[\d.]+)?|http status|status([\s_-]+code)?|error)[\s:=]+402(?!\w))"
+    r"|\(billing_error\)|billing\s+verification\s+failed"
 )
 UNIT_SECONDS = {"s": 1, "m": 60, "h": 3600, "d": 86400}
 UNIT = r"(\d+)[ \t]*(seconds?|secs?|minutes?|mins?|hours?|hrs?|days?|s|m|h|d)(?![a-z])"
@@ -160,7 +162,7 @@ def relative_seconds(text, pos):
 
 
 def limit_decision(text, now):
-    # A credit, spend, or paid-quota block never resets on its own; a reset hint in it is not a reason to wait.
+    # A credit, spend, billing, or paid-quota block never resets on its own; a reset hint in it is not a reason to wait.
     if CREDIT_BLOCK.search(text):
         return "stop"
     deltas = []

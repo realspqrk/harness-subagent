@@ -14,7 +14,7 @@ license: MIT
 compatibility: Requires claude, codex, grok, agy, cursor-agent, and/or muse on PATH. Windows needs Git Bash. Python 3.
 metadata:
   author: realspqrk
-  version: "0.6.3"
+  version: "0.6.4"
 ---
 
 # Harness subagent
@@ -57,7 +57,7 @@ A child must not delegate. `spawn.sh` sets `HARNESS_SUBAGENT_RUN` and refuses a 
 | Implementation from a clear brief | Sol, medium | Sonnet, medium | Grok 4.7, medium | Spark, medium |
 | Debugging, root cause | Sol, high | Sonnet, high | Grok 4.7, high | Spark, high |
 | Code review, refuting a plan, second opinion | Sol, high | Sonnet, high | Grok 4.7, high | Spark, high |
-| Architecture, ambiguous design | Astra, low | Opus, high | Grok 4.7, high | Wonder, high |
+| Architecture, ambiguous design | Astra, medium | Opus, high | Grok 4.7, high | Wonder, high |
 | UI build or visual check | Sol, medium | Sonnet, medium | Grok 4.7, medium | Spark, medium |
 | Long autonomous run with clear acceptance | Sol, high | Sonnet, high | Grok 4.7, high | Spark, high |
 | Writing, docs, copy | Terra, medium | Sonnet, medium | Grok 4.7, medium | Spark, medium |
@@ -103,8 +103,8 @@ Grok cannot be relied on to read the temp run directory. `spawn.sh` copies the p
 
 `spawn.sh` reads the CLI text for a reset time.
 
-- The reset is known and within 24 hours. The script waits, then resumes that same session once. Claude Code's own auto-continue refuses waits longer than 24 hours (docs accessed 2026-09-22). This skill uses that cutoff for every CLI.
-- There is no reset time, the reset is further away, the message is a credit or spend block, or a second limit arrives. The script stops. Stop with it. Tell the user the evidence and the time, if any. Wait for instructions. Do not switch CLI or model. Do not invent a reset time.
+- The reset is known and within 24 hours, and the message is not a credit, spend, or billing block. The script waits, then resumes that same session once. Claude Code's own auto-continue refuses waits longer than 24 hours (docs accessed 2026-09-22). This skill uses that cutoff for every CLI.
+- There is no reset time, the reset is further away, the message is a credit, spend, or billing block (such as HTTP 402), or a second limit arrives. The script stops. Stop with it. Tell the user the evidence and the time, if any. Wait for instructions. Do not switch CLI or model. Do not invent a reset time.
 
 ## Health
 

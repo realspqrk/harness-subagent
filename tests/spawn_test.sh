@@ -12,8 +12,10 @@ while IFS='|' read -r say want; do
   got="$("$PYTHON" "$REG" resolve --model "$say" 2>&1 | tr -d '\r' | paste -sd' ' -)" || true
   if [[ "$got" == "$want" ]]; then ok "'$say' -> $want"; else fail_msg "'$say' -> '$got', want '$want'"; fi
 done <<'EOF'
-Astra|codex gpt-6-astra
-Sol|codex gpt-6.1-sol
+Astra|codex gpt-6.2-astra
+GPT-6 Astra|codex gpt-6-astra
+Sol|codex gpt-6.2-sol
+GPT-6.1 Sol|codex gpt-6.1-sol
 GPT-6 Sol|codex gpt-6-sol
 GPT-5.6 Sol|codex gpt-5.6-sol
 Luna|codex gpt-6-luna
@@ -63,7 +65,7 @@ fi
 
 new_run
 run_cmd "$BASH_BIN" "$SPAWN" --model Astra --project "$ROOT" --run "$run" --dry-run
-if [[ "$ec" -eq 0 && "$out" == *"codex exec"* && "$out" == *"-m gpt-6-astra"* && "$out" != *"model_reasoning_effort"* ]]; then
+if [[ "$ec" -eq 0 && "$out" == *"codex exec"* && "$out" == *"-m gpt-6.2-astra"* && "$out" != *"model_reasoning_effort"* ]]; then
   ok "codex: no effort flag unless asked"
 else
   fail_msg "codex dry-run (exit=$ec out=$out err=$err)"
@@ -182,6 +184,9 @@ SH
 # report.md where the prompt file names it and refuses any path outside cwd.
 cat >"$STUBS/muse" <<'SH'
 #!/usr/bin/env bash
+# STUB_FAIL: print it on stderr, nothing on stdout, no report, exit 1 (muse 1.4.23 billing block).
+if [[ -n "${STUB_FAIL-}" ]]; then printf '%s
+' "$STUB_FAIL" >&2; exit 1; fi
 pf=""
 while [[ $# -gt 0 ]]; do [[ "$1" == --prompt-file ]] && pf="$2"; shift; done
 dest="$(sed -n 's/^Write report\.md to \(.*\) before you exit\..*/\1/p' "$pf" | tail -n 1)"
@@ -235,6 +240,19 @@ if [[ "$(cat "$run/capture-status.txt")" == usage-limit && "$(head -n 1 "$run/la
 else
   fail_msg "capture limit (status=$(cat "$run/capture-status.txt" 2>/dev/null) last=$(head -c 200 "$run/last.md" 2>/dev/null))"
 fi
+
+# A billing block (muse 1.4.23: HTTP 402 on stderr, empty stdout, exit 1) stops like a credit block (2026-11-18).
+new_run
+run_cmd env PATH="$STUBS:$PATH" STUB_FAIL='agent loop failed: model failed: API error 402 [request_id=x]: Billing verification failed. (billing_error)' "$BASH_BIN" "$SPAWN" --model Ember --project "$ROOT" --run "$run"
+if [[ "$(cat "$run/capture-status.txt")" == usage-limit ]] && grep -q 'Billing verification failed' "$run/last.md" && [[ "$err" != *resum* ]]; then
+  ok "capture: a billing error on stderr is a stopping limit, not no-verdict"
+else
+  fail_msg "capture billing (exit=$ec status=$(cat "$run/capture-status.txt" 2>/dev/null) last=$(head -c 200 "$run/last.md" 2>/dev/null) err=$err)"
+fi
+
+capture $'VERDICT — DONE
+Found a billing issue in src/pay.ts.' '' Sonnet
+if [[ "$(cat "$run/capture-status.txt")" == ok ]]; then ok "capture: a report that mentions billing is not a limit"; else fail_msg "capture billing wording (status=$(cat "$run/capture-status.txt" 2>/dev/null))"; fi
 
 capture '' '' Astra
 if [[ "$ec" -eq 0 && "$(cat "$run/capture-status.txt")" == ok && "$(tr -d '\r\n' <"$run/session-id")" == 0b7e7c6e-1f2a-4c3d-9e8f-123456789abc ]] \
@@ -342,6 +360,11 @@ Weekly limit reached, resets in 3 days|2026-09-22T12:00:00|stop|relative reset b
 Insufficient credits. Try again at 2026-09-22T12:20:00.|2026-09-22T12:00:00|stop|credit block stops despite a reset time
 Spending limit reached. Retry-After: 30|2026-09-22T12:00:00|stop|spend cap stops despite Retry-After
 Exhausted paid quota. Retry-After: 30|2026-09-22T12:00:00|stop|paid quota stops despite Retry-After
+API error 402: Billing verification failed. Retry-After: 30|2026-09-22T12:00:00|stop|billing block stops despite Retry-After
+HTTP 402 Payment Required. Retry-After: 30|2026-09-22T12:00:00|stop|bare 402 stops despite Retry-After
+Rate limited. Try again in 20 minutes. Found a billing issue in src/pay.ts.|2026-09-22T12:00:00|wait 1215|incidental billing wording still waits
+Rate limited. Try again in 20 minutes. error 402abc|2026-09-22T12:00:00|wait 1215|402 must be a whole status token
+The checkout handler sets billing_error when a card is declined. Show a payment required banner. HTTP 429 Too Many Requests. Retry-After: 30|2026-09-22T12:00:00|wait 45|billing terms in child prose do not block a 429 retry
 Rate limited. Try again in 1h30m.|2026-09-22T12:00:00|wait 5415|relative compact reset waits
 Rate limited. Try again in 20 minutes and 1 week.|2026-09-22T12:00:00|stop|relative reset with an unknown unit stops
 Limit hit, resets in a moment. Retry-After: 30|2026-09-22T12:00:00|wait 45|vague relative hint defers to Retry-After

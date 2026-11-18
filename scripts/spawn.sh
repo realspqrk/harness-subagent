@@ -327,6 +327,7 @@ detect_usage_limit() {
   pattern+='|(quota[[:space:]_:=-]+((has been|is)[[:space:]]+)?(exhausted|exceeded))|((exhausted|exceeded)[[:space:]_:=-]+(paid[[:space:]]+)?quota)'
   pattern+='|((insufficient|exhausted)[[:space:]_:=-]+credits)|(credits[[:space:]_:=-]+((are|have been)[[:space:]]+)?(insufficient|exhausted))'
   pattern+='|((spend(ing)?[[:space:]_-]+(limit|cap))[[:space:]:=-]+((has been|is)[[:space:]]+)?(reached|exceeded|exhausted))'
+  pattern+='|(^|[^[:alnum:]_])(http(/[0-9.]+)?|http status|status([[:space:]_-]+code)?|error)[[:space:]:=]+402([^[:alnum:]_]|$)|\(billing_error\)|billing verification failed'
   has_verdict "$f" && return 0
   for source in "$STDOUT" "$ERR" "$PROVIDER_ERRORS" "$f"; do
     [[ -s "$source" ]] || continue
@@ -343,7 +344,7 @@ detect_usage_limit() {
   printf '%s\n' \
     'VERDICT — BLOCKED: usage/rate limit' \
     '' \
-    'UNVERIFIED — Child returned limit evidence, not a completed report. Keep this CLI and model. If a reset time is known and within 24 hours, spawn.sh waits and resumes this session once. Otherwise stop and ask the user. Do not switch CLI or model. Do not invent a reset time.' \
+    'UNVERIFIED — Child returned limit evidence, not a completed report. Keep this CLI and model. If a reset time is known and within 24 hours, and this is not a credit, spend, or billing block, spawn.sh waits and resumes this session once. Otherwise stop and ask the user. Do not switch CLI or model. Do not invent a reset time.' \
     "$evidence" >"$f"
   printf 'usage-limit\n' >"$STATUS"
 }
