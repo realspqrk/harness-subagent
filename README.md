@@ -59,7 +59,7 @@ Example output (tab-separated):
 claude   2.1.280 (Claude Code)   logged-in       -
 codex    codex-cli 0.155.1       logged-in       -
 grok     missing                 -               -
-agy      present                 login-unknown   -
+agy      1.5.15                  login-unknown   -
 cursor   2026.09.08-6caf4ff      logged-in       -
 muse     Muse Code 1.4.6 (1.4.6-R6000.1)  login-unknown   -
 ```
@@ -70,7 +70,7 @@ The exit code is 0 only when every CLI is present, every CLI with a login check 
 
 The protocol is [SKILL.md](SKILL.md). This is the short version.
 
-1. **You name the CLI and the model, or let the parent pick.** Spoken names such as Opus 5.5, Fable, Sonnet 5.5, Astra, Sol, Terra, Luna, Grok 4.7, Muse Wonder, Wonder Full, Spark, and Ember resolve to exact ids in [references/models.md](references/models.md), which also lists prices and effort levels. For Antigravity and Cursor, pass the id that CLI accepts. If you leave the CLI, model, or effort out, the parent fills each blank from the task table in [SKILL.md](SKILL.md#when-none-is-named), says what it picked, and spawns. It never picks `max`, `ultra`, Fable, Wonder Full, or Grok 4.7 Fast on its own.
+1. **You name the CLI and the model, or let the parent pick.** Spoken names such as Opus 5.5, Fable, Sonnet 5.5, Astra, Sol, Terra, Luna, Grok 4.7, Muse Wonder, Wonder Full, Spark, Ember, Gemini 4 Neon, Gemini 4 Argon, and Gemini 4 Hydrogen resolve to exact ids in [references/models.md](references/models.md), which also lists prices and effort levels. For any other Antigravity or Cursor model, pass the id that CLI accepts. If you leave the CLI, model, or effort out, the parent fills each blank from the task table in [SKILL.md](SKILL.md#when-none-is-named), says what it picked, and spawns. Antigravity and Cursor have no column. If you name one without a model, the parent lists its models and asks once. If you name no effort, it leaves the CLI default. It never picks `max`, `ultra`, Fable, Wonder Full, or Grok 4.7 Fast on its own.
 2. **The parent writes a brief.** It creates `brief.md` in a new temp run directory: one task sentence, where to look, what was already tried, and when it is done. It names paths. It does not paste the repo.
 3. **The parent runs `scripts/spawn.sh` in the background** and waits for it to exit.
 4. **The parent judges the report.** It reads `report.md` (or `last.md`) and `capture-status.txt`, then says what it agrees with, what it does not, and what it will do. A pasted report is not an answer.

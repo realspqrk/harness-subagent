@@ -120,6 +120,18 @@
         "Does not pick max, ultra, or Fable",
         "Spawns exactly one CLI"
       ]
+    },
+    {
+      "id": 13,
+      "prompt": "Have Hydrogen review the error handling in src/sync.py, effort xhigh. Then ask Argon the same at xhigh.",
+      "expected_output": "Hydrogen resolves to agy gemini-4-hydrogen and spawns with --effort xhigh. Argon accepts only low, medium, and high, so the parent stops before the second spawn and names those efforts instead of downgrading.",
+      "expectations": [
+        "Calls spawn.sh with --model Hydrogen or gemini-4-hydrogen and --effort xhigh",
+        "The generated agy command has --model gemini-4-hydrogen --effort xhigh",
+        "Does not pass an effort-suffixed id together with --effort",
+        "Does not spawn Argon at xhigh or silently lower the effort",
+        "Tells the user Argon accepts low, medium, high"
+      ]
     }
   ]
 }

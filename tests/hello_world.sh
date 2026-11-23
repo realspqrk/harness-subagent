@@ -110,6 +110,8 @@ live_one codex gpt-6.2-sol
 live_one codex gpt-6.1-terra
 live_one grok grok-4.7
 live_one agy gemini-3.8-flash
+# Gemini 4 needs Google AI Pro or higher.
+[[ -n "${HS_LIVE_GEMINI4-}" ]] && live_one agy gemini-4-hydrogen
 live_one muse muse-wonder-1.0
 # Wonder Full needs the Muse Power Usage or Maximum Usage plan.
 [[ -n "${HS_LIVE_WONDER_FULL-}" ]] && live_one muse muse-wonder-full-1.0
