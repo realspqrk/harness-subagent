@@ -6,7 +6,8 @@ description: >
   (agy), the Cursor CLI (cursor-agent), and Muse Code (muse). Use when the user says
   harness-subagent, asks for another vendor's model or second opinion, or names a
   CLI or a model such as Astra, Sol, Terra, Opus, Opus 5.5, Fable, Fable 5.2, Sonnet,
-  Sonnet 5.5, Haiku, Grok 4.7, Muse, Wonder, Wonder Full, Spark, or Ember. Do not
+  Sonnet 5.5, Haiku, Grok 4.7, Muse, Wonder, Wonder Full, Spark, Ember, Gemini 4
+  Neon, Gemini 4 Argon, or Gemini 4 Hydrogen. Do not
   use to install those CLIs. Do not use if this session was launched by this skill (the prompt starts
   with YOU ARE THE WORKER, or HARNESS_SUBAGENT_RUN is set). Do that job. Do not
   delegate again.
@@ -14,7 +15,7 @@ license: MIT
 compatibility: Requires claude, codex, grok, agy, cursor-agent, and/or muse on PATH. Windows needs Git Bash. Python 3.
 metadata:
   author: realspqrk
-  version: "0.6.4"
+  version: "0.6.5"
 ---
 
 # Harness subagent
@@ -26,7 +27,7 @@ A CLI, model, or effort the user named wins, for the first spawn and every retry
 ## Delegate
 
 1. Take the CLI, model, and effort the user named. Spoken names are in [references/models.md](references/models.md). Fill each blank from [When none is named](#when-none-is-named) and do not ask, except where that section says to stop. Cursor, cursor-agent, and Grok Bot are the `cursor` family. Grok Build is `grok`. Claude Code is `claude`. Codex is `codex`. Antigravity is `agy`. Muse Code is `muse`.
-2. Pass `--effort` to `claude`, `codex`, `grok`, and `muse`. CLI defaults differ from API defaults and change between releases. For `agy` and `cursor`, pass it only when the user named an effort and the model id does not already contain one, such as `gemini-3.8-flash-high`. Prices are per token. Higher effort spends more tokens at the same rate.
+2. Pass `--effort` to `claude`, `codex`, `grok`, and `muse`. CLI defaults differ from API defaults and change between releases. For `agy` and `cursor`, pass it only when the user named an effort and the model id does not already contain one, such as `gemini-3.8-flash-high`. When the user names both, drop the suffix and pass the base id with the named effort. agy rejects the pair. Prices are per token. Higher effort spends more tokens at the same rate.
 3. Write `brief.md` in a new temp run directory. Use the shape below.
 4. Run `scripts/spawn.sh` in the background. On Windows, invoke Git Bash with the script path as an argument. Do not put the brief inside a PowerShell double-quoted string. Write `brief.md` as UTF-8.
 5. Wait until that process exits. Read `last.md`, `capture-status.txt`, and the exit code. `last.md` is the report plus any `spawn.sh` warnings.
@@ -64,7 +65,7 @@ A child must not delegate. `spawn.sh` sets `HARNESS_SUBAGENT_RUN` and refuses a 
 
 Each cell starts at the vendor's own starting effort for that kind of work, from the guidance cited in [references/models.md](references/models.md). Effort names are calibrated per model, so `high` on one model is not `high` on another. Benchmark rows there are evidence, not a ranking.
 
-Antigravity and Cursor serve several vendors, so they have no column. If the user names one of them without a model, list its models (`agy models`, `cursor-agent --list-models`) and ask once.
+Antigravity and Cursor serve several vendors, so they have no column. Gemini 4 Neon, Gemini 4 Argon, and Gemini 4 Hydrogen select `agy`. If the user names one of the two CLIs without a model, list its models (`agy models`, `cursor-agent --list-models`) and ask once.
 
 Do not choose `max`, `ultra`, Fable, Wonder Full, Grok 4.7 Fast, or an id that `scripts/registry.json` does not list, unless the user names it. Under `claude -p`, Fable can bill usage credits without asking, depending on plan and seat tier. Wonder Full runs only on the Muse Power Usage or Maximum Usage plan. Grok 4.7 Fast costs twice the token price of Grok 4.7.
 

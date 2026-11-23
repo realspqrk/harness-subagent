@@ -212,10 +212,22 @@ Sources: https://dev.meta.ai/docs/models, https://dev.meta.ai/docs/pricing-rate-
 
 ## Antigravity (`agy`) and Cursor CLI (`cursor`)
 
-No fixed model list lives here. Pass the id the CLI accepts.
+Both CLIs serve a plan-dependent catalog from several vendors. The registry names three agy models. Any other id passes through with `--backend agy` or `--backend cursor`, for example `--backend agy --model gemini-4-neon-xhigh`. Without `--backend`, an unlisted id is refused as unknown. A passed-through id is checked only for safe characters. For agy, `--effort` is checked against agy's CLI-wide list. For Cursor, `--effort` is checked only for safe characters.
 
-`agy models` lists ids with the effort built in, such as `gemini-3.8-flash-high`. Such an id takes no `--effort`. agy 1.2.13 rejects the pair as a conflict. To choose the effort with `--effort`, pass the base id, such as `gemini-3.8-flash`. The CLI help lists `low`, `medium`, `high`, `xhigh`, and `max` (agy 1.5.11), but each model takes only some of them. On 2026-09-29 `gemini-3.8-flash` took `low`, `medium`, and `high`. agy names the allowed set when you pass another one. Cursor has no separate effort flag. When you pass `--effort`, the spawn command writes it into the model id as `[effort=...]`, which `cursor-agent --help` documents.
+| Say | Id | Efforts | Plan |
+|---|---|---|---|
+| Gemini 4 Neon, Neon | `gemini-4-neon` | low, medium, high, xhigh | paid Google AI Pro or trial on an eligible device, Ultra, Enterprise |
+| Gemini 4 Hydrogen, Hydrogen | `gemini-4-hydrogen` | low, medium, high, xhigh | non-trial Google AI Pro, Ultra, Enterprise |
+| Gemini 4 Argon, Argon | `gemini-4-argon` | low, medium, high | paid Google AI Pro or trial on an eligible device, Ultra, Enterprise |
 
-The catalog depends on the Google plan. Per Antigravity's models page (accessed 2026-11-11), Gemini 4 Argon (2026-10-13) needs Google AI Pro or higher, Gemini 4 Carbon (2026-11-10) needs Google AI Ultra or Enterprise, Gemini 3.1 Pro is Enterprise only, and Gemini 3.8 Flash is on every plan. Gemini 4 Argon and Gemini 4 Carbon take `low`, `medium`, and `high`. On 2026-11-11 this account's agy 1.5.5 listed only Gemini 3.8 Flash, Claude Sonnet 4.6, Claude Opus 4.6, and GPT-OSS 120B, and it refused `gemini-4-argon` and `gemini-4-carbon` with the same error as an invented id. The page says the Claude 4.6 and GPT-OSS models leave Antigravity on 2026-11-18. On 2026-11-18 the page also lists Gemini 4 Hydrogen, Claude Sonnet 5.5, and Opus 5.5. Gemini 4 Hydrogen defaults to `high` and adds `xhigh` (shown as Extra). That day this account's agy 1.5.11 still listed the same four models and no Gemini 4. Run `agy models` before naming an id. Source: https://antigravity.google/docs/models/ and https://aistudio.google.com/docs/latest-model.
+Antigravity bills by plan quota and AI credits, not per token, so there is no price column. All three default to `medium`. The app shows `xhigh` as Extra. Gemini 4 Carbon needs Google AI Ultra or Enterprise. Google Workspace plans include no Antigravity plan.
+
+agy also offers Orchestrator ids (`gemini-pro-orchestrator-neon`, `gemini-pro-orchestrator-g1-pro` for Argon), which pair a planner with Hydrogen as executor and take no effort. The registry does not name them.
+
+On 2026-11-23, after the account moved to Google AI Pro, agy 1.5.15 listed Neon, Argon, Hydrogen, both Orchestrator pairings, Gemini 3.8 Flash, Claude Opus 5.5 and Sonnet 5.5, and GPT-OSS 120B. It listed no Carbon and no Claude 4.6. Through `spawn.sh`, each of the three answered a hello-world prompt. Neon and Hydrogen wrote a file. The page says Claude 4.6 and GPT-OSS 120B leave Antigravity on 2026-11-30.
+
+`agy models` lists ids with the effort built in, such as `gemini-4-neon-xhigh` or `gemini-3.8-flash-high`. Such an id takes no `--effort`. To choose the effort with `--effort`, pass the base id, such as `gemini-4-neon`. The CLI help lists `low`, `medium`, `high`, `xhigh`, and `max` (agy 1.5.15), but each model takes only some of them, and agy names the allowed set when you pass another one. Cursor has no separate effort flag. When you pass `--effort`, the spawn command writes it into the model id as `[effort=...]`, which `cursor-agent --help` documents.
+
+The catalog lags a plan change. For about 20 minutes after the 2026-11-23 upgrade, roughly one `agy models` call in four still returned the free-tier list. Runs then failed at random with "not recognized as a known model", "--effort is not supported for model", "empty conversation id", or `NOT_FOUND (code 404)`, even after the report was written. A refused Gemini 4 id looks like a typo. The plan or the rollout can cause that. Run `agy models` a few times before you call it a CLI bug or a wrong id. Sources: https://antigravity.google/docs/models/, https://antigravity.google/docs/plans/ (accessed 2026-11-23).
 
 List Cursor models with `cursor-agent --list-models`. The binary is `cursor-agent`. On this platform `agent` is often Grok, not Cursor.

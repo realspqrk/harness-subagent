@@ -48,7 +48,9 @@ def resolve(model, backend):
         return hits[0]
     if len(hits) > 1:
         die("model %r matches more than one CLI" % model)
-    if backend and not HARNESSES[backend]["models"]:
+    # agy and cursor serve plan-dependent catalogs: listed ids get names and
+    # effort checks, any other id passes through to the CLI.
+    if backend and HARNESSES[backend].get("open_ids"):
         if re.fullmatch(r"[A-Za-z0-9._+-]+", model):
             return backend, model
         die("model %r is not a known id" % model)

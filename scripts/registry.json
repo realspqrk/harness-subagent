@@ -183,11 +183,28 @@
     },
     "agy": {
       "bin": "agy",
-      "version": [],
+      "version": ["--version"],
       "auth": [],
       "update": ["update"],
       "efforts": ["low", "medium", "high", "xhigh", "max"],
-      "models": []
+      "open_ids": true,
+      "models": [
+        {
+          "id": "gemini-4-neon",
+          "say": ["gemini 4 neon", "neon"],
+          "efforts": ["low", "medium", "high", "xhigh"]
+        },
+        {
+          "id": "gemini-4-hydrogen",
+          "say": ["gemini 4 hydrogen", "hydrogen"],
+          "efforts": ["low", "medium", "high", "xhigh"]
+        },
+        {
+          "id": "gemini-4-argon",
+          "say": ["gemini 4 argon", "argon"],
+          "efforts": ["low", "medium", "high"]
+        }
+      ]
     },
     "cursor": {
       "bin": "cursor-agent",
@@ -195,6 +212,7 @@
       "auth": ["status"],
       "update": ["update"],
       "effort_style": "bracket",
+      "open_ids": true,
       "models": []
     },
     "muse": {

@@ -36,7 +36,18 @@ Wonder Full|muse muse-wonder-full-1.0
 Spark|muse muse-spark-1.3
 Spark 1.2|muse muse-spark-1.2
 Ember|muse muse-ember-1.0
+Neon|agy gemini-4-neon
+Gemini 4 Hydrogen|agy gemini-4-hydrogen
+Argon|agy gemini-4-argon
 EOF
+
+# Listed agy models get their own effort set (unlisted pass-through: agy dry-run below).
+if ! "$PYTHON" "$REG" check-effort --backend agy --model gemini-4-argon --effort xhigh >/dev/null 2>&1 \
+  && "$PYTHON" "$REG" check-effort --backend agy --model gemini-4-hydrogen --effort xhigh >/dev/null 2>&1; then
+  ok "agy: Argon refuses xhigh, Hydrogen takes it"
+else
+  fail_msg "agy per-model efforts"
+fi
 
 # No spoken name or id may point at two models.
 dupes="$("$PYTHON" - "$ROOT/scripts/registry.json" <<'PY'
@@ -81,10 +92,18 @@ fi
 
 new_run
 run_cmd "$BASH_BIN" "$SPAWN" --backend agy --model gemini-test --project "$ROOT" --run "$run" --dry-run
-if [[ "$ec" -eq 0 && "$out" == *"--dangerously-skip-permissions"* && "$out" != *"--add-dir"* ]]; then
+if [[ "$ec" -eq 0 && "$out" == *"--model gemini-test "* && "$out" == *"--dangerously-skip-permissions"* && "$out" != *"--add-dir"* ]]; then
   ok "agy: writes in the project, not the run dir"
 else
   fail_msg "agy dry-run (exit=$ec out=$out err=$err)"
+fi
+
+new_run
+run_cmd "$BASH_BIN" "$SPAWN" --model Hydrogen --effort xhigh --project "$ROOT" --run "$run" --dry-run
+if [[ "$ec" -eq 0 && "$out" == *"agy "* && "$out" == *"--model gemini-4-hydrogen --effort xhigh"* ]]; then
+  ok "agy: spoken name -> base id plus --effort"
+else
+  fail_msg "agy Hydrogen dry-run (exit=$ec out=$out err=$err)"
 fi
 
 new_run
